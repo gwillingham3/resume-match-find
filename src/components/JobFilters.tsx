@@ -37,16 +37,6 @@ const JobFilters: React.FC<JobFiltersProps> = ({ filters, onFilterChange }) => {
           placeholder="Enter job type"
         />
       </div>
-      
-      <div>
-        <Label htmlFor="experience">Experience Level</Label>
-        <Input
-          id="experience"
-          value={filters.experience}
-          onChange={handleChange('experience')}
-          placeholder="Enter experience level"
-        />
-      </div>
     </div>
   );
 };
