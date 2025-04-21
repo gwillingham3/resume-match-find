@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Check, File } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import api from '@/lib/axios';
+import { useResumeProcessing } from '@/hooks/useResumeProcessing';
 
 interface ResumeUploadProps {
   onUploadSuccess: (keywords: string[]) => void;
 }
 
 const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const { toast } = useToast();
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [file, setFile] = React.useState<File | null>(null);
+  const {
+    state,
+    progress,
+    error,
+    keywords,
+    uploadResume,
+    reset
+  } = useResumeProcessing();
   
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -44,11 +48,6 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
     const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
     if (!validTypes.includes(selectedFile.type)) {
-      toast({
-        title: "Invalid file format",
-        description: "Please upload a PDF or Word document (.doc, .docx, .pdf)",
-        variant: "destructive",
-      });
       return;
     }
     
@@ -57,33 +56,15 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
   
   const handleUpload = async () => {
     if (!file) return;
-    
-    setIsUploading(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('resume', file);
-      
-      const response = await api.post('/resume/upload', formData);
-      
-      setUploadSuccess(true);
-      toast({
-        title: "Resume uploaded successfully",
-        description: "Keywords have been extracted from your resume.",
-        variant: "default",
-      });
-      
-      onUploadSuccess(response.data.keywords);
-    } catch (error) {
-      console.error('Error uploading resume:', error);
-      toast({
-        title: "Upload failed",
-        description: "There was a problem uploading your resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
+    await uploadResume(file);
+    if (keywords.length > 0) {
+      onUploadSuccess(keywords);
     }
+  };
+  
+  const handleReset = () => {
+    setFile(null);
+    reset();
   };
   
   return (
@@ -97,12 +78,14 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
         </div>
         
         <div 
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragging ? 'border-purple bg-purple-light/20' : 'border-gray-light'} ${uploadSuccess ? 'bg-green-50 border-green-200' : ''}`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            isDragging ? 'border-purple bg-purple-light/20' : 'border-gray-light'
+          } ${state === 'completed' ? 'bg-green-50 border-green-200' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {!file && !uploadSuccess ? (
+          {!file && state !== 'completed' ? (
             <>
               <Upload className="mx-auto h-12 w-12 text-gray mb-4" />
               <p className="font-medium mb-2">Drag and drop your resume here</p>
@@ -121,7 +104,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
                 />
               </label>
             </>
-          ) : uploadSuccess ? (
+          ) : state === 'completed' ? (
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
                 <Check className="h-6 w-6 text-green-600" />
@@ -132,27 +115,35 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
           ) : (
             <div className="flex flex-col items-center">
               <File className="mx-auto h-12 w-12 text-purple mb-4" />
-              <p className="font-medium mb-1 break-all max-w-full">{file.name}</p>
-              <p className="text-gray text-sm mb-4">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p className="font-medium mb-1 break-all max-w-full">{file?.name}</p>
+              <p className="text-gray text-sm mb-4">
+                {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+              </p>
+              {state === 'uploading' && (
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                  <div
+                    className="bg-purple-600 h-2.5 rounded-full"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+              )}
               <Button
                 onClick={handleUpload}
-                disabled={isUploading}
+                disabled={state === 'uploading' || state === 'processing'}
                 className="bg-purple hover:bg-purple-dark"
               >
-                {isUploading ? "Uploading..." : "Upload Resume"}
+                {state === 'uploading' ? "Uploading..." : 
+                 state === 'processing' ? "Processing..." : "Upload Resume"}
               </Button>
             </div>
           )}
         </div>
         
-        {uploadSuccess && (
+        {state === 'completed' && (
           <div className="mt-4 flex justify-center">
             <Button
               variant="outline"
-              onClick={() => {
-                setFile(null);
-                setUploadSuccess(false);
-              }}
+              onClick={handleReset}
             >
               Upload Another Resume
             </Button>

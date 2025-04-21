@@ -4,31 +4,46 @@ import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { JobFilters } from '@/types';
 
 interface JobListProps {
-  jobs: Job[];
-  keywords?: string[];
-  onSaveJob: (jobId: string) => void;
-  onUnsaveJob: (jobId: string) => void;
-  onApplyToJob: (jobId: string) => void;
+  filters: JobFilters;
   savedJobs: string[];
   appliedJobs: string[];
-  isLoading: boolean;
+  onSaveJob: (jobId: string) => void;
+  onApplyJob: (jobId: string) => void;
 }
 
-const JobList: React.FC<JobListProps> = ({ 
-  jobs, 
-  keywords = [], 
-  onSaveJob, 
-  onUnsaveJob,
-  onApplyToJob,
-  savedJobs = [],
-  appliedJobs = [],
-  isLoading = false
+const JobList: React.FC<JobListProps> = ({
+  filters,
+  savedJobs,
+  appliedJobs,
+  onSaveJob,
+  onApplyJob,
 }) => {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   
+  React.useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Implement API call with filters
+        const response = await fetch('/api/jobs');
+        const data = await response.json();
+        setJobs(data);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [filters]);
+
   const filteredJobs = jobs.filter(job => {
     // Filter by search term
     const matchesSearch = searchTerm === '' || 
@@ -56,14 +71,9 @@ const JobList: React.FC<JobListProps> = ({
   
   if (isLoading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[...Array(6)].map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-6">
-            <Skeleton className="h-6 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-1/2 mb-2" />
-            <Skeleton className="h-4 w-1/3 mb-4" />
-            <Skeleton className="h-20 w-full" />
-          </div>
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-32 w-full" />
         ))}
       </div>
     );
@@ -71,11 +81,8 @@ const JobList: React.FC<JobListProps> = ({
 
   if (jobs.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">No jobs found</h3>
-        <p className="mt-2 text-sm text-gray-500">
-          Try adjusting your search or filters to find more jobs.
-        </p>
+      <div className="text-center py-8">
+        <p className="text-gray-500">No jobs found matching your criteria.</p>
       </div>
     );
   }
@@ -93,11 +100,11 @@ const JobList: React.FC<JobListProps> = ({
           />
         </div>
         
-        {keywords.length > 0 && (
+        {filters.keywords.length > 0 && (
           <div className="mt-4">
             <p className="text-sm font-medium mb-2">Keywords from your resume:</p>
             <div className="flex flex-wrap gap-2">
-              {keywords.map((keyword, index) => (
+              {filters.keywords.map((keyword, index) => (
                 <Button
                   key={index}
                   variant="outline"
@@ -131,8 +138,8 @@ const JobList: React.FC<JobListProps> = ({
               isSaved={savedJobs.includes(job.id)}
               isApplied={appliedJobs.includes(job.id)}
               onSave={() => onSaveJob(job.id)}
-              onUnsave={() => onUnsaveJob(job.id)}
-              onApply={() => onApplyToJob(job.id)}
+              onUnsave={() => onSaveJob(job.id)}
+              onApply={() => onApplyJob(job.id)}
             />
           ))
         )}
