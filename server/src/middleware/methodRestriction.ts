@@ -1,12 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
+import { Middleware } from '../types/express';
 
-export const restrictMethods = (allowedMethods: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+export const restrictMethods = (allowedMethods: string[]): Middleware => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     if (!allowedMethods.includes(req.method)) {
-      res.status(405).json({ 
-        error: 'Method Not Allowed',
-        message: `Only ${allowedMethods.join(', ')} methods are allowed on this route`
-      });
+      res.status(405).json({ error: 'Method not allowed' });
       return;
     }
     next();
