@@ -1,25 +1,27 @@
-
 import React, { useState } from 'react';
 import JobCard, { Job } from './JobCard';
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface JobListProps {
   jobs: Job[];
   keywords?: string[];
-  onSaveJob?: (job: Job) => void;
-  onApplyJob?: (job: Job) => void;
-  savedJobs?: string[];
-  appliedJobs?: string[];
-  isLoading?: boolean;
+  onSaveJob: (jobId: string) => void;
+  onUnsaveJob: (jobId: string) => void;
+  onApplyToJob: (jobId: string) => void;
+  savedJobs: string[];
+  appliedJobs: string[];
+  isLoading: boolean;
 }
 
 const JobList: React.FC<JobListProps> = ({ 
   jobs, 
   keywords = [], 
   onSaveJob, 
-  onApplyJob,
+  onUnsaveJob,
+  onApplyToJob,
   savedJobs = [],
   appliedJobs = [],
   isLoading = false
@@ -52,6 +54,32 @@ const JobList: React.FC<JobListProps> = ({
     }
   };
   
+  if (isLoading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="bg-white rounded-lg shadow-sm p-6">
+            <Skeleton className="h-6 w-3/4 mb-4" />
+            <Skeleton className="h-4 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-1/3 mb-4" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium text-gray-900">No jobs found</h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Try adjusting your search or filters to find more jobs.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-4">
@@ -90,35 +118,7 @@ const JobList: React.FC<JobListProps> = ({
       </div>
       
       <div className="space-y-4">
-        {isLoading ? (
-          // Loading skeleton
-          Array(3).fill(0).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg p-5 shadow-sm animate-pulse">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-md bg-gray-light"></div>
-                  <div>
-                    <div className="h-5 w-48 bg-gray-light rounded mb-2"></div>
-                    <div className="h-3 w-24 bg-gray-light rounded"></div>
-                  </div>
-                </div>
-                <div className="h-8 w-16 bg-gray-light rounded"></div>
-              </div>
-              <div className="mt-4">
-                <div className="flex gap-2">
-                  <div className="h-6 w-20 bg-gray-light rounded-full"></div>
-                  <div className="h-6 w-16 bg-gray-light rounded-full"></div>
-                </div>
-                <div className="h-4 w-full bg-gray-light rounded mt-4"></div>
-                <div className="h-4 w-3/4 bg-gray-light rounded mt-2"></div>
-                <div className="flex justify-between items-center mt-4">
-                  <div className="h-3 w-24 bg-gray-light rounded"></div>
-                  <div className="h-10 w-28 bg-gray-light rounded"></div>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : filteredJobs.length === 0 ? (
+        {filteredJobs.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium text-navy">No jobs found</h3>
             <p className="text-gray mt-2">Try adjusting your search or filters</p>
@@ -128,10 +128,11 @@ const JobList: React.FC<JobListProps> = ({
             <JobCard 
               key={job.id} 
               job={job} 
-              onSave={onSaveJob}
-              onApply={onApplyJob}
-              saved={savedJobs.includes(job.id)}
-              applied={appliedJobs.includes(job.id)}
+              isSaved={savedJobs.includes(job.id)}
+              isApplied={appliedJobs.includes(job.id)}
+              onSave={() => onSaveJob(job.id)}
+              onUnsave={() => onUnsaveJob(job.id)}
+              onApply={() => onApplyToJob(job.id)}
             />
           ))
         )}

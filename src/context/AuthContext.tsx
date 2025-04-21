@@ -1,6 +1,7 @@
-
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import api from '@/lib/axios';
+import { useAuthStorage } from '@/hooks/use-local-storage';
 
 interface User {
   id: string;
@@ -31,42 +32,24 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, setUser, token, setToken, clearAuth } = useAuthStorage();
+  const [isLoading, setIsLoading] = React.useState(true);
   const { toast } = useToast();
   
-  useEffect(() => {
-    // Check if user is stored in localStorage (for persistence)
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse stored user', e);
-        localStorage.removeItem('user');
-      }
-    }
-    setIsLoading(false);
-  }, []);
+  const isAuthenticated = !!user && !!token;
   
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // In a real app, this would authenticate with a backend
-      // For now, we'll just mock successful authentication
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+      });
       
-      // Mock successful login after delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      const mockUser: User = {
-        id: 'user123',
-        name: 'John Doe',
-        email: email,
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const { user: userData, token: tokenData } = response.data;
+      setUser(userData);
+      setToken(tokenData);
       
       toast({
         title: "Login successful",
@@ -88,20 +71,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // In a real app, this would register with a backend
-      // For now, we'll just mock successful registration
+      const response = await api.post('/auth/register', {
+        email,
+        password,
+        name,
+      });
       
-      // Mock successful registration after delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      const newUser: User = {
-        id: 'user' + Math.floor(Math.random() * 1000),
-        name: name,
-        email: email,
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      const { user: userData, token: tokenData } = response.data;
+      setUser(userData);
+      setToken(tokenData);
       
       toast({
         title: "Registration successful",
@@ -120,8 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    clearAuth();
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
@@ -132,18 +109,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Mock OAuth login with Google
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await api.post('/auth/google');
+      const { user: userData, token: tokenData } = response.data;
       
-      const mockUser: User = {
-        id: 'google123',
-        name: 'Jane Smith',
-        email: 'jane.smith@gmail.com',
-        avatar: 'https://i.pravatar.cc/150?u=jane',
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(userData);
+      setToken(tokenData);
       
       toast({
         title: "Google login successful",
@@ -165,18 +135,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Mock OAuth login with GitHub
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await api.post('/auth/github');
+      const { user: userData, token: tokenData } = response.data;
       
-      const mockUser: User = {
-        id: 'github456',
-        name: 'Dev Coder',
-        email: 'dev.coder@github.com',
-        avatar: 'https://i.pravatar.cc/150?u=dev',
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(userData);
+      setToken(tokenData);
       
       toast({
         title: "GitHub login successful",
@@ -193,17 +156,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
-  
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    register,
-    logout,
-    googleLogin,
-    githubLogin,
-  };
-  
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
+      isLoading,
+      login,
+      register,
+      logout,
+      googleLogin,
+      githubLogin
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

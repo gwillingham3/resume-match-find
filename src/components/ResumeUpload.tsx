@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Check, File } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import api from '@/lib/axios';
 
 interface ResumeUploadProps {
   onUploadSuccess: (keywords: string[]) => void;
@@ -60,24 +60,30 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
     
     setIsUploading(true);
     
-    // In a real app, this would send the file to a server for processing
-    // For now, we'll simulate the process with a timeout and mock data
-    setTimeout(() => {
-      setIsUploading(false);
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      
+      const response = await api.post('/resume/upload', formData);
+      
       setUploadSuccess(true);
-      
-      // Mock extracted keywords that would normally come from the server
-      const mockKeywords = ['React', 'JavaScript', 'Frontend', 'Web Development', 
-                          'TypeScript', 'UI/UX', 'API Integration', 'Node.js'];
-      
       toast({
         title: "Resume uploaded successfully",
         description: "Keywords have been extracted from your resume.",
         variant: "default",
       });
       
-      onUploadSuccess(mockKeywords);
-    }, 2000);
+      onUploadSuccess(response.data.keywords);
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      toast({
+        title: "Upload failed",
+        description: "There was a problem uploading your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   return (
@@ -101,11 +107,9 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
               <Upload className="mx-auto h-12 w-12 text-gray mb-4" />
               <p className="font-medium mb-2">Drag and drop your resume here</p>
               <p className="text-gray text-sm mb-4">Supported formats: PDF, DOC, DOCX</p>
-              <Button
-                as="label"
+              <label
                 htmlFor="file-upload"
-                variant="outline"
-                className="cursor-pointer"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
               >
                 Browse Files
                 <input
@@ -115,7 +119,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
                   accept=".pdf,.doc,.docx"
                   onChange={handleFileChange}
                 />
-              </Button>
+              </label>
             </>
           ) : uploadSuccess ? (
             <div className="flex flex-col items-center">
