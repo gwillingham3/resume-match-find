@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, File, Briefcase, Calendar } from 'lucide-react';
 import JobCard from '@/components/JobCard';
 import ResumeUpload from './ResumeUpload';
-import { Job } from '@/types';
+import { useJobContext } from '@/context/JobContext';
 
 interface UserProfileProps {
   user: {
@@ -15,26 +15,18 @@ interface UserProfileProps {
     email: string;
     avatar?: string;
   };
-  savedJobs: Job[];
-  appliedJobs: Job[];
   hasResume: boolean;
-  onRemoveSaved: (jobId: string) => void;
-  onRemoveApplied: (jobId: string) => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
-  savedJobs,
-  appliedJobs,
-  hasResume,
-  onRemoveSaved,
-  onRemoveApplied
+  hasResume
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const { jobs, savedJobs, appliedJobs } = useJobContext();
   
-  const handleUnsaveJob = (jobId: string) => {
-    onRemoveSaved(jobId);
-  };
+  const savedJobList = jobs.filter(job => savedJobs.includes(job.id));
+  const appliedJobList = jobs.filter(job => appliedJobs.includes(job.id));
   
   return (
     <div className="space-y-6">
@@ -68,9 +60,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <Briefcase size={16} />
             <span className="flex items-center">
               Saved
-              {savedJobs.length > 0 && (
+              {savedJobList.length > 0 && (
                 <span className="ml-1 bg-purple text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  {savedJobs.length}
+                  {savedJobList.length}
                 </span>
               )}
             </span>
@@ -79,9 +71,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <Calendar size={16} />
             <span className="flex items-center">
               Applied
-              {appliedJobs.length > 0 && (
+              {appliedJobList.length > 0 && (
                 <span className="ml-1 bg-purple text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  {appliedJobs.length}
+                  {appliedJobList.length}
                 </span>
               )}
             </span>
@@ -175,7 +167,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         
         <TabsContent value="saved" className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Saved Jobs</h3>
-          {savedJobs.length === 0 ? (
+          {savedJobList.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-gray mb-4">You haven't saved any jobs yet.</p>
               <Button asChild>
@@ -184,15 +176,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </Card>
           ) : (
             <div className="space-y-4">
-              {savedJobs.map((job) => (
+              {savedJobList.map((job) => (
                 <JobCard 
                   key={job.id} 
-                  job={job} 
-                  isSaved={savedJobs.some(savedJob => savedJob.id === job.id)}
-                  isApplied={appliedJobs.some(appliedJob => appliedJob.id === job.id)}
-                  onSave={() => handleUnsaveJob(job.id)}
-                  onUnsave={() => handleUnsaveJob(job.id)}
-                  onApply={() => {}}
+                  job={job}
                 />
               ))}
             </div>
@@ -201,7 +188,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         
         <TabsContent value="applied" className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Applied Jobs</h3>
-          {appliedJobs.length === 0 ? (
+          {appliedJobList.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-gray mb-4">You haven't applied to any jobs yet.</p>
               <Button asChild>
@@ -210,15 +197,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </Card>
           ) : (
             <div className="space-y-4">
-              {appliedJobs.map((job) => (
+              {appliedJobList.map((job) => (
                 <JobCard 
                   key={job.id} 
-                  job={job} 
-                  isSaved={savedJobs.some(savedJob => savedJob.id === job.id)}
-                  isApplied={appliedJobs.some(appliedJob => appliedJob.id === job.id)}
-                  onSave={() => handleUnsaveJob(job.id)}
-                  onUnsave={() => handleUnsaveJob(job.id)}
-                  onApply={() => {}}
+                  job={job}
                 />
               ))}
             </div>

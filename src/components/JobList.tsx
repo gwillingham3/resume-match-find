@@ -1,49 +1,21 @@
 import React, { useState } from 'react';
-import JobCard, { Job } from './JobCard';
+import JobCard from './JobCard';
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobFilters } from '@/types';
+import { useJobContext } from '@/context/JobContext';
 
 interface JobListProps {
   filters: JobFilters;
-  savedJobs: string[];
-  appliedJobs: string[];
-  onSaveJob: (jobId: string) => void;
-  onApplyJob: (jobId: string) => void;
 }
 
-const JobList: React.FC<JobListProps> = ({
-  filters,
-  savedJobs,
-  appliedJobs,
-  onSaveJob,
-  onApplyJob,
-}) => {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+const JobList: React.FC<JobListProps> = ({ filters }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const { jobs, isLoading, savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob } = useJobContext();
   
-  React.useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setIsLoading(true);
-        // TODO: Implement API call with filters
-        const response = await fetch('/api/jobs');
-        const data = await response.json();
-        setJobs(data);
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchJobs();
-  }, [filters]);
-
   const filteredJobs = jobs.filter(job => {
     // Filter by search term
     const matchesSearch = searchTerm === '' || 
@@ -124,26 +96,21 @@ const JobList: React.FC<JobListProps> = ({
         )}
       </div>
       
-      <div className="space-y-4">
-        {filteredJobs.length === 0 ? (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-navy">No jobs found</h3>
-            <p className="text-gray mt-2">Try adjusting your search or filters</p>
-          </div>
-        ) : (
-          filteredJobs.map((job) => (
+      {filteredJobs.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-navy">No jobs found</h3>
+          <p className="text-gray mt-2">Try adjusting your search or filters</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredJobs.map((job) => (
             <JobCard 
               key={job.id} 
-              job={job} 
-              isSaved={savedJobs.includes(job.id)}
-              isApplied={appliedJobs.includes(job.id)}
-              onSave={() => onSaveJob(job.id)}
-              onUnsave={() => onSaveJob(job.id)}
-              onApply={() => onApplyJob(job.id)}
+              job={job}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
