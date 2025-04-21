@@ -1,7 +1,5 @@
 import { Router } from 'express';
-import { auth } from '../middleware/auth';
-import { validateContentType } from '../middleware/contentType';
-import { restrictMethods } from '../middleware/methodRestriction';
+import { composeMiddleware } from '../middleware/compose';
 import { Job } from '../models/Job';
 import { RouteHandler } from '../types/express';
 
@@ -50,15 +48,19 @@ const getJobById: RouteHandler = async (req, res) => {
 };
 
 router.post('/search', 
-  restrictMethods(['POST']),
-  auth, 
-  validateContentType(['application/json']),
+  composeMiddleware({
+    methods: ['POST'],
+    contentType: ['application/json'],
+    requireAuth: true
+  }),
   searchJobs
 );
 
 router.get('/:id', 
-  restrictMethods(['GET']),
-  auth, 
+  composeMiddleware({
+    methods: ['GET'],
+    requireAuth: true
+  }),
   getJobById
 );
 

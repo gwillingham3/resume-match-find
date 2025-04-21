@@ -1,8 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { auth } from '../middleware/auth';
-import { validateContentType } from '../middleware/contentType';
-import { restrictMethods } from '../middleware/methodRestriction';
+import { composeMiddleware } from '../middleware/compose';
 import Resume from '../models/Resume';
 import { Job } from '../models/Job';
 import { calculateMatchScore, getCachedMatchScore, cacheMatchScore } from '../services/matchScore';
@@ -135,16 +133,19 @@ const getMatchScore: RouteHandler = async (req, res) => {
 };
 
 router.post('/upload', 
-  restrictMethods(['POST']),
-  auth, 
-  validateContentType(['multipart/form-data']),
+  composeMiddleware({
+    methods: ['POST'],
+    requireAuth: true
+  }),
   upload.single('resume'), 
   uploadResume
 );
 
 router.get('/:resumeId/match/:jobId', 
-  restrictMethods(['GET']),
-  auth, 
+  composeMiddleware({
+    methods: ['GET'],
+    requireAuth: true
+  }),
   getMatchScore
 );
 

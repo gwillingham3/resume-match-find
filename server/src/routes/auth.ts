@@ -2,16 +2,17 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
-import { validateContentType } from '../middleware/contentType';
-import { restrictMethods } from '../middleware/methodRestriction';
+import { composeMiddleware } from '../middleware/compose';
 import { isValidEmail, isStrongPassword, getPasswordRequirements } from '../utils/validation';
 
 const router = express.Router();
 
 // Register - Only allow POST
 router.post('/register', 
-  restrictMethods(['POST']),
-  validateContentType(['application/json']),
+  composeMiddleware({
+    methods: ['POST'],
+    contentType: ['application/json']
+  }),
   async (req, res) => {
     try {
       const { name, email, password } = req.body;
@@ -77,8 +78,10 @@ router.post('/register',
 
 // Login - Only allow POST
 router.post('/login', 
-  restrictMethods(['POST']),
-  validateContentType(['application/json']),
+  composeMiddleware({
+    methods: ['POST'],
+    contentType: ['application/json']
+  }),
   async (req, res) => {
     try {
       const { email, password } = req.body;
