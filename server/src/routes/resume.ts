@@ -24,9 +24,6 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'));
     }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 

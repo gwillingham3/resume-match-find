@@ -100,8 +100,7 @@ const ResumeSchema = new mongoose.Schema<Resume>({
     },
     size: {
       type: Number,
-      required: true,
-      max: 5 * 1024 * 1024, // 5MB max file size
+      required: true
     },
   },
   parsedData: {
