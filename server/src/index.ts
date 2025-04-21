@@ -46,15 +46,23 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jobmatch')
-  .then(() => {
+// Connect to MongoDB with retry logic
+const connectWithRetry = async (retries = 3, delay = 1000) => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jobmatch');
     console.log('Connected to MongoDB');
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
-  })
-  .catch((error) => {
-    console.error('Failed to connect to MongoDB:', error);
-    process.exit(1);
-  }); 
+  } catch (error) {
+    if (retries > 0) {
+      console.error(`Failed to connect to MongoDB, retrying in ${delay}ms... (${retries} attempts left)`);
+      setTimeout(() => connectWithRetry(retries - 1, delay * 2), delay);
+    } else {
+      console.error('Failed to connect to MongoDB after all retry attempts:', error);
+      process.exit(1);
+    }
+  }
+};
+
+connectWithRetry(); 
