@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, File, Briefcase, Calendar } from 'lucide-react';
-import JobCard, { Job } from './JobCard';
+import JobCard from '@/components/JobCard';
 import ResumeUpload from './ResumeUpload';
+import { Job } from '@/types';
 
 interface UserProfileProps {
   user: {
@@ -32,8 +32,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
   
-  const handleUnsaveJob = (job: Job) => {
-    onRemoveSaved(job.id);
+  const handleUnsaveJob = (jobId: string) => {
+    onRemoveSaved(jobId);
   };
   
   return (
@@ -188,8 +188,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <JobCard 
                   key={job.id} 
                   job={job} 
-                  saved={true}
-                  onSave={handleUnsaveJob}
+                  isSaved={savedJobs.some(savedJob => savedJob.id === job.id)}
+                  isApplied={appliedJobs.some(appliedJob => appliedJob.id === job.id)}
+                  onSave={() => handleUnsaveJob(job.id)}
+                  onUnsave={() => handleUnsaveJob(job.id)}
+                  onApply={() => {}}
                 />
               ))}
             </div>
@@ -211,7 +214,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <JobCard 
                   key={job.id} 
                   job={job} 
-                  applied={true}
+                  isSaved={savedJobs.some(savedJob => savedJob.id === job.id)}
+                  isApplied={appliedJobs.some(appliedJob => appliedJob.id === job.id)}
+                  onSave={() => handleUnsaveJob(job.id)}
+                  onUnsave={() => handleUnsaveJob(job.id)}
+                  onApply={() => {}}
                 />
               ))}
             </div>
