@@ -35,11 +35,11 @@ const Dashboard = () => {
   } = useJobStorage();
   
   useEffect(() => {
-    // Redirect to auth if not authenticated
-    if (!authLoading && !isAuthenticated) {
+    if (!isAuthenticated) {
       navigate('/auth');
+      return;
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, navigate]);
   
   const handleResumeUpload = async (extractedKeywords: string[]) => {
     setKeywords(extractedKeywords);
@@ -78,6 +78,10 @@ const Dashboard = () => {
       description: "Your application has been submitted successfully.",
     });
   };
+  
+  if (!isAuthenticated) {
+    return null;
+  }
   
   if (authLoading) {
     return (
