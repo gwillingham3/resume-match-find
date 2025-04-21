@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import JobList from '@/components/JobList';
 import { useAuth } from '@/context/AuthContext';
-import { Job } from '@/components/JobCard';
+import { Job, JobFilters } from '@/types';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useJobStorage } from '@/hooks/use-local-storage';
@@ -13,6 +13,12 @@ const Jobs = () => {
   const { toast } = useToast();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState<JobFilters>({
+    location: '',
+    type: '',
+    experience: '',
+    keywords: []
+  });
   
   const {
     savedJobs,
@@ -85,13 +91,11 @@ const Jobs = () => {
         </div>
         
         <JobList
-          jobs={jobs}
-          isLoading={isLoading}
+          filters={filters}
           savedJobs={savedJobs}
           appliedJobs={appliedJobs}
           onSaveJob={handleSaveJob}
-          onUnsaveJob={handleUnsaveJob}
-          onApplyToJob={handleApplyToJob}
+          onApplyJob={handleApplyToJob}
         />
       </main>
     </div>

@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import UserProfile from '@/components/UserProfile';
-import { Job } from '@/components/JobCard';
+import { Job } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
 const Profile = () => {

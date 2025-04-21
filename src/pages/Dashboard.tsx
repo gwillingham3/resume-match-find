@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,19 +5,34 @@ import ResumeUpload from '@/components/ResumeUpload';
 import JobList from '@/components/JobList';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Job } from '@/components/JobCard';
+import { Job, JobFilters } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { fetchJobsBasedOnKeywords } from '@/utils/resumeParser';
+import { useToast } from "@/hooks/use-toast";
+import { useJobStorage } from '@/hooks/use-local-storage';
 
 const Dashboard = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [keywords, setKeywords] = useState<string[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [hasResume, setHasResume] = useState(false);
+  const [filters, setFilters] = useState<JobFilters>({
+    location: '',
+    type: '',
+    experience: '',
+    keywords: []
+  });
+  
+  const {
+    saveJob,
+    unsaveJob,
+    applyToJob
+  } = useJobStorage();
   
   useEffect(() => {
     // Redirect to auth if not authenticated
@@ -43,20 +57,26 @@ const Dashboard = () => {
     }
   };
   
-  const handleSaveJob = (job: Job) => {
-    if (savedJobs.includes(job.id)) {
-      // Remove from saved jobs
-      setSavedJobs(savedJobs.filter(id => id !== job.id));
-    } else {
-      // Add to saved jobs
-      setSavedJobs([...savedJobs, job.id]);
-    }
+  const handleSaveJob = (jobId: string) => {
+    saveJob(jobId);
+    toast({
+      title: "Job saved",
+      description: "This job has been added to your saved jobs.",
+    });
   };
   
   const handleApplyJob = (job: Job) => {
     if (!appliedJobs.includes(job.id)) {
       setAppliedJobs([...appliedJobs, job.id]);
     }
+  };
+  
+  const handleApplyToJob = (jobId: string) => {
+    applyToJob(jobId);
+    toast({
+      title: "Application submitted",
+      description: "Your application has been submitted successfully.",
+    });
   };
   
   if (authLoading) {
@@ -154,13 +174,11 @@ const Dashboard = () => {
                 <CardContent>
                   {jobs.length > 0 || isLoadingJobs ? (
                     <JobList 
-                      jobs={jobs} 
-                      keywords={keywords}
-                      onSaveJob={handleSaveJob}
-                      onApplyJob={handleApplyJob}
+                      filters={filters}
                       savedJobs={savedJobs}
                       appliedJobs={appliedJobs}
-                      isLoading={isLoadingJobs}
+                      onSaveJob={handleSaveJob}
+                      onApplyJob={handleApplyToJob}
                     />
                   ) : (
                     <div className="text-center py-12">

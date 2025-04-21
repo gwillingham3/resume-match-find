@@ -1,7 +1,7 @@
 import React from 'react';
 import JobList from './JobList';
 import JobFilters from './JobFilters';
-import { Job, JobFilters as JobFiltersType } from '@/types';
+import { JobFilters as JobFiltersType } from '@/types';
 
 export const JobsPage: React.FC = () => {
   const [filters, setFilters] = React.useState<JobFiltersType>({

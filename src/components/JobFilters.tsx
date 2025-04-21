@@ -12,47 +12,40 @@ const JobFilters: React.FC<JobFiltersProps> = ({ filters, onFilterChange }) => {
   const handleChange = (field: keyof JobFiltersType) => (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({
       ...filters,
-      [field]: e.target.value,
+      [field]: e.target.value
     });
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-lg font-semibold mb-4">Filters</h2>
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          value={filters.location}
+          onChange={handleChange('location')}
+          placeholder="Enter location"
+        />
+      </div>
       
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            type="text"
-            placeholder="Enter location"
-            value={filters.location}
-            onChange={handleChange('location')}
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="type">Job Type</Label>
-          <Input
-            id="type"
-            type="text"
-            placeholder="Enter job type"
-            value={filters.type}
-            onChange={handleChange('type')}
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="experience">Experience Level</Label>
-          <Input
-            id="experience"
-            type="text"
-            placeholder="Enter experience level"
-            value={filters.experience}
-            onChange={handleChange('experience')}
-          />
-        </div>
+      <div>
+        <Label htmlFor="type">Job Type</Label>
+        <Input
+          id="type"
+          value={filters.type}
+          onChange={handleChange('type')}
+          placeholder="Enter job type"
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="experience">Experience Level</Label>
+        <Input
+          id="experience"
+          value={filters.experience}
+          onChange={handleChange('experience')}
+          placeholder="Enter experience level"
+        />
       </div>
     </div>
   );
