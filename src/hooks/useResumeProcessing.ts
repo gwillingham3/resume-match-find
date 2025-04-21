@@ -2,7 +2,7 @@ import { useState } from 'react';
 import api from '@/lib/axios';
 import { useToast } from '@/hooks/use-toast';
 
-type ProcessingState = 'idle' | 'uploading' | 'processing' | 'completed' | 'error';
+type ProcessingState = 'uploading' | 'success' | 'error';
 
 interface UseResumeProcessingReturn {
   state: ProcessingState;
@@ -14,7 +14,7 @@ interface UseResumeProcessingReturn {
 }
 
 export const useResumeProcessing = (): UseResumeProcessingReturn => {
-  const [state, setState] = useState<ProcessingState>('idle');
+  const [state, setState] = useState<ProcessingState>('success');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -38,9 +38,8 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
         },
       });
 
-      setState('processing');
       setKeywords(response.data.keywords);
-      setState('completed');
+      setState('success');
       
       toast({
         title: "Resume uploaded successfully",
@@ -61,7 +60,7 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
   };
 
   const reset = () => {
-    setState('idle');
+    setState('success');
     setProgress(0);
     setError(null);
     setKeywords([]);

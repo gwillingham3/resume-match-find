@@ -80,12 +80,12 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
         <div 
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             isDragging ? 'border-purple bg-purple-light/20' : 'border-gray-light'
-          } ${state === 'completed' ? 'bg-green-50 border-green-200' : ''}`}
+          } ${state === 'success' ? 'bg-green-50 border-green-200' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {!file && state !== 'completed' ? (
+          {!file && state !== 'success' ? (
             <>
               <Upload className="mx-auto h-12 w-12 text-gray mb-4" />
               <p className="font-medium mb-2">Drag and drop your resume here</p>
@@ -104,7 +104,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
                 />
               </label>
             </>
-          ) : state === 'completed' ? (
+          ) : state === 'success' ? (
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
                 <Check className="h-6 w-6 text-green-600" />
@@ -129,17 +129,16 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
               )}
               <Button
                 onClick={handleUpload}
-                disabled={state === 'uploading' || state === 'processing'}
+                disabled={state === 'uploading'}
                 className="bg-purple hover:bg-purple-dark"
               >
-                {state === 'uploading' ? "Uploading..." : 
-                 state === 'processing' ? "Processing..." : "Upload Resume"}
+                {state === 'uploading' ? "Uploading..." : "Upload Resume"}
               </Button>
             </div>
           )}
         </div>
         
-        {state === 'completed' && (
+        {state === 'success' && (
           <div className="mt-4 flex justify-center">
             <Button
               variant="outline"
