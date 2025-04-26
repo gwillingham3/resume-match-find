@@ -150,4 +150,20 @@ router.get('/verify',
   }
 );
 
+// Logout - Only allow POST
+router.post('/logout', 
+  composeMiddleware({
+    methods: ['POST'],
+    requireAuth: true
+  }),
+  async (req, res) => {
+    try {
+      // Simply return a success message, as JWT invalidation is complex
+      res.json({ message: 'Logout successful' });
+    } catch (error) {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
 export default router;

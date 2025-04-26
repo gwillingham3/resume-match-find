@@ -7,6 +7,7 @@ import { User, File, Briefcase, Calendar } from 'lucide-react';
 import JobCard from '@/components/JobCard';
 import ResumeUpload from './ResumeUpload';
 import { useJobContext } from '@/context/JobContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface UserProfileProps {
   user: {
@@ -24,6 +25,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const { jobs, savedJobs, appliedJobs } = useJobContext();
+  const { logout } = useAuth();
   
   const savedJobList = jobs.filter(job => savedJobs.includes(job.id));
   const appliedJobList = jobs.filter(job => appliedJobs.includes(job.id));
@@ -114,6 +116,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   </Button>
                 </div>
               </div>
+              <Button onClick={logout}>Sign Out</Button>
             </CardContent>
           </Card>
         </TabsContent>
