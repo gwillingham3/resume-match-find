@@ -7,6 +7,22 @@ import { isValidEmail, isStrongPassword, getPasswordRequirements } from '../util
 
 const router = express.Router();
 
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN);
+
+// Validate JWT configuration
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  console.error('JWT_SECRET is missing from environment variables');
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+// JWT options
+const jwtOptions: jwt.SignOptions = {
+  expiresIn: '7d', // This is a valid StringValue for jsonwebtoken
+  algorithm: 'HS256' as const
+};
+
 // Register - Only allow POST
 router.post('/register', 
   composeMiddleware({
@@ -55,11 +71,8 @@ router.post('/register',
       // Create token
       const token = jwt.sign(
         { userId: user._id },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { 
-          expiresIn: '7d',
-          algorithm: 'HS256' as const
-        }
+        jwtSecret,
+        jwtOptions
       );
       
       res.status(201).json({
@@ -103,11 +116,8 @@ router.post('/login',
       // Create token
       const token = jwt.sign(
         { userId: user._id },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { 
-          expiresIn: '7d',
-          algorithm: 'HS256' as const
-        }
+        jwtSecret,
+        jwtOptions
       );
       
       res.json({
@@ -118,6 +128,22 @@ router.post('/login',
         },
         token,
       });
+    } catch (error) {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+// Verify token - Only allow GET
+router.get('/verify', 
+  composeMiddleware({
+    methods: ['GET'],
+    requireAuth: true
+  }),
+  async (req, res) => {
+    try {
+      // If we reach here, the token is valid (handled by middleware)
+      res.json({ valid: true });
     } catch (error) {
       res.status(500).json({ error: 'Server error' });
     }

@@ -10,6 +10,9 @@ import { RouteHandler } from '../types/express';
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       'application/pdf',
@@ -29,9 +32,28 @@ const router = express.Router();
 
 // Upload and parse resume - Only allow POST
 const uploadResume: RouteHandler = async (req, res) => {
+  console.log('Upload resume request received:', {
+    method: req.method,
+    path: req.path,
+    headers: req.headers,
+    file: req.file ? {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    } : null,
+    user: req.user
+  });
+
   try {
     if (!req.file) {
+      console.log('No file uploaded');
       res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
+
+    if (!req.user) {
+      console.log('No user found in request');
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
     
@@ -90,6 +112,7 @@ const uploadResume: RouteHandler = async (req, res) => {
       keywords 
     });
   } catch (error) {
+    console.error('Resume upload error:', error);
     if (error instanceof Error) {
       res.status(400).json({ error: error.message });
     } else {
@@ -132,6 +155,7 @@ const getMatchScore: RouteHandler = async (req, res) => {
   }
 };
 
+// Register routes
 router.post('/upload', 
   composeMiddleware({
     methods: ['POST'],

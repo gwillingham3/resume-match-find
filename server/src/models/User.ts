@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -14,6 +14,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  resumeIds: [{
+    type: Schema.Types.ObjectId, ref: 'Resume' 
+  }],
+  jobIds: [{ 
+    type: Schema.Types.ObjectId, ref: 'Job'
+  }],
   createdAt: {
     type: Date,
     default: Date.now,

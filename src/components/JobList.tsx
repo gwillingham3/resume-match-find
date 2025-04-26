@@ -9,6 +9,10 @@ import { useJobContext } from '@/context/JobContext';
 
 interface JobListProps {
   filters: JobFilters;
+  savedJobs: string[];
+  appliedJobs: string[];
+  onSaveJob: (jobId: string) => void;
+  onApplyJob: (jobId: string) => void;
 }
 
 const JobList: React.FC<JobListProps> = ({ filters }) => {

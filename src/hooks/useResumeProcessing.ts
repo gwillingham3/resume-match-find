@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import api from '@/lib/axios';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
-type ProcessingState = 'uploading' | 'success' | 'error';
+type ProcessingState = 'idle' | 'uploading' | 'success' | 'error';
 
 interface UseResumeProcessingReturn {
   state: ProcessingState;
@@ -14,11 +15,12 @@ interface UseResumeProcessingReturn {
 }
 
 export const useResumeProcessing = (): UseResumeProcessingReturn => {
-  const [state, setState] = useState<ProcessingState>('success');
+  const [state, setState] = useState<ProcessingState>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [keywords, setKeywords] = useState<string[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const uploadResume = async (file: File) => {
     try {
@@ -28,8 +30,14 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
 
       const formData = new FormData();
       formData.append('resume', file);
+      if (user && user.id) {
+        formData.append('userId', user.id);
+      }
 
       const response = await api.post('/resume/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / (progressEvent.total || 1)
@@ -60,7 +68,7 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
   };
 
   const reset = () => {
-    setState('success');
+    setState('idle');
     setProgress(0);
     setError(null);
     setKeywords([]);

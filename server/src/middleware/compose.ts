@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { auth } from './auth';
 import { Middleware } from '../types/express';
 
 type MiddlewareConfig = {
@@ -55,18 +56,8 @@ export const composeMiddleware = (config: MiddlewareConfig): Middleware => {
 
   // Add authentication if required
   if (config.requireAuth) {
-    middlewares.push((req: Request, res: Response, next: NextFunction) => {
-      const token = req.headers.authorization?.split(' ')[1];
-      
-      if (!token) {
-        res.status(401).json({ error: 'No token provided' });
-        return;
-      }
-      
-      // Verify token and set user
-      req.user = { id: 'user-id' }; // Replace with actual token verification
-      next();
-    });
+    // Use actual auth middleware to verify JWT and set req.user
+    middlewares.push(auth);
   }
 
   // Compose all middlewares

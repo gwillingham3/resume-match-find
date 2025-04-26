@@ -12,5 +12,6 @@ export interface Job {
 export interface JobFilters {
   location: string;
   type: string;
+  experience: string;
   keywords: string[];
 } 

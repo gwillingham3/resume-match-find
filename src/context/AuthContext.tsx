@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import api from '@/lib/axios';
 import { useAuthStorage } from '@/hooks/use-local-storage';
@@ -14,11 +14,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => void;
-  googleLogin: () => Promise<void>;
-  githubLogin: () => Promise<void>;
+  googleLogin: () => Promise<boolean>;
+  githubLogin: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +38,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const isAuthenticated = !!user && !!token;
   
-  const login = async (email: string, password: string) => {
+  // Initialize auth state
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        if (token) {
+          // Verify token with backend
+          await api.get('/auth/verify');
+        }
+      } catch (error) {
+        console.error('Auth verification failed:', error);
+        clearAuth();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, [token, clearAuth]);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
     try {
@@ -55,6 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Login successful",
         description: "Welcome back to JobMatch!",
       });
+      
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -62,12 +83,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Invalid email or password. Please try again.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
   
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email: string, password: string, name: string): Promise<boolean> => {
     setIsLoading(true);
     
     try {
@@ -85,6 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Registration successful",
         description: "Welcome to JobMatch! Your account has been created.",
       });
+      
+      return true;
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -92,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "There was a problem creating your account. Please try again.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
   
-  const googleLogin = async () => {
+  const googleLogin = async (): Promise<boolean> => {
     setIsLoading(true);
     
     try {
@@ -119,6 +144,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Google login successful",
         description: "Welcome to JobMatch!",
       });
+      
+      return true;
     } catch (error) {
       console.error('Google login error:', error);
       toast({
@@ -126,12 +153,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "There was a problem logging in with Google. Please try again.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
   
-  const githubLogin = async () => {
+  const githubLogin = async (): Promise<boolean> => {
     setIsLoading(true);
     
     try {
@@ -145,6 +173,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "GitHub login successful",
         description: "Welcome to JobMatch!",
       });
+      
+      return true;
     } catch (error) {
       console.error('GitHub login error:', error);
       toast({
@@ -152,6 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "There was a problem logging in with GitHub. Please try again.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsLoading(false);
     }

@@ -1,17 +1,18 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthProps {
-  onLogin: (email: string, password: string) => void;
-  onRegister: (email: string, password: string, name: string) => void;
-  onGoogleLogin: () => void;
-  onGithubLogin: () => void;
+  onLogin?: () => void;
+  onRegister?: () => void;
+  onGoogleLogin?: () => void;
+  onGithubLogin?: () => void;
 }
 
 const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithubLogin }) => {
@@ -24,8 +25,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -40,18 +43,19 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       return;
     }
     
-    // In a real app, this would authenticate with a backend
-    setTimeout(() => {
-      onLogin(loginEmail, loginPassword);
+    try {
+      const success = await login(loginEmail, loginPassword);
+      if (success) {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
       setIsLoading(false);
-      toast({
-        title: "Login successful",
-        description: "Welcome back to JobMatch!",
-      });
-    }, 1000);
+    }
   };
   
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -76,16 +80,16 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       return;
     }
     
-    // In a real app, this would register with a backend
-    setTimeout(() => {
-      onRegister(registerEmail, registerPassword, registerName);
+    try {
+      const success = await register(registerEmail, registerPassword, registerName);
+      if (success) {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
       setIsLoading(false);
-      toast({
-        title: "Registration successful",
-        description: "Welcome to JobMatch! Your account has been created.",
-      });
-      setActiveTab('login');
-    }, 1000);
+    }
   };
   
   return (

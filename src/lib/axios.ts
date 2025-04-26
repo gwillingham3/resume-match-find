@@ -20,7 +20,15 @@ api.interceptors.request.use((config) => {
 
 // Add request interceptor for auth token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  let token: string | null = null;
+  const raw = localStorage.getItem('token');
+  if (raw) {
+    try {
+      token = JSON.parse(raw);
+    } catch {
+      token = raw;
+    }
+  }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

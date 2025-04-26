@@ -85,7 +85,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {!file && state !== 'success' ? (
+          {!file && state === 'idle' ? (
             <>
               <Upload className="mx-auto h-12 w-12 text-gray mb-4" />
               <p className="font-medium mb-2">Drag and drop your resume here</p>

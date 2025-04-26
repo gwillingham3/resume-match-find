@@ -35,11 +35,11 @@ const Dashboard = () => {
   } = useJobStorage();
   
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/auth');
       return;
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
   
   const handleResumeUpload = async (extractedKeywords: string[]) => {
     setKeywords(extractedKeywords);
@@ -79,16 +79,16 @@ const Dashboard = () => {
     });
   };
   
-  if (!isAuthenticated) {
-    return null;
-  }
-  
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-purple border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+  
+  if (!isAuthenticated) {
+    return null;
   }
   
   return (

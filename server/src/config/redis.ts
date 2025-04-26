@@ -3,18 +3,26 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const redisClient = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD || undefined,
-});
+let redisClient: Redis | null = null;
 
-redisClient.on('error', (err: Error) => {
-  console.error('Redis Client Error:', err);
-});
+try {
+  redisClient = new Redis({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD || undefined,
+  });
 
-redisClient.on('connect', () => {
-  console.log('Connected to Redis');
-});
+  redisClient.on('error', (err: Error) => {
+    console.warn('Redis Client Error:', err);
+    redisClient = null;
+  });
+
+  redisClient.on('connect', () => {
+    console.log('Connected to Redis');
+  });
+} catch (err) {
+  console.warn('Failed to initialize Redis client:', err);
+  redisClient = null;
+}
 
 export default redisClient; 
