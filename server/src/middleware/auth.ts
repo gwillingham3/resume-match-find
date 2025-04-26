@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 export const auth: Middleware = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.headers.authorization?.split(' ')[1];
-  
+
   if (!token) {
     res.status(401).json({ error: 'No token provided' });
     return;
@@ -17,12 +17,12 @@ export const auth: Middleware = (req: Request, res: Response, next: NextFunction
     }
 
     const decoded = jwt.verify(token, jwtSecret) as { userId: string };
-    console.log('Decoded token:', decoded);
+    console.log("Decoded token:", decoded);
     req.user = { id: decoded.userId };
-    console.log('req.user:', req.user);
+    console.log("req.user:", req.user);
     next();
   } catch (error) {
-    console.error('Invalid token:', error);
-    res.status(401).json({ error: 'Invalid token' });
+    console.error("Invalid token:", error);
+    res.status(401).json({ error: "Invalid token" });
   }
 };
