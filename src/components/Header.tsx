@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Search, User, Menu, X } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+  const { user, logout } = useAuth();
   return (
     <header className="bg-white shadow-sm py-4 px-4 md:px-8">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -33,9 +34,13 @@ const Header = () => {
               <User className="h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/auth">
-            <Button className="bg-purple hover:bg-purple-dark text-white">Sign In</Button>
-          </Link>
+          {user ? (
+            <Button className="bg-purple hover:bg-purple-dark text-white" onClick={logout}>Sign Out</Button>
+          ) : (
+            <Link to="/auth">
+              <Button className="bg-purple hover:bg-purple-dark text-white">Sign In</Button>
+            </Link>
+          )}
         </div>
         
         {/* Mobile Menu Button */}
@@ -74,13 +79,25 @@ const Header = () => {
             >
               Profile
             </Link>
-            <Link 
-              to="/auth" 
-              className="bg-purple text-white px-4 py-2 rounded-md"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <Button 
+                className="bg-purple text-white px-4 py-2 rounded-md"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  logout();
+                }}
+              >
+                Sign Out
+              </Button>
+            ) : (
+              <Link 
+                to="/auth" 
+                className="bg-purple text-white px-4 py-2 rounded-md"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+            )}
           </nav>
         </div>
       )}
