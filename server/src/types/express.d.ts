@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: { id: string };
     }
   }
 }
@@ -23,4 +23,4 @@ export type Middleware = (
 export type RouteHandler = (
   req: Request,
   res: Response
-) => Promise<void>; 
+) => Promise<void>;

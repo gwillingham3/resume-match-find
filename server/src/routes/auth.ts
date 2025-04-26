@@ -70,7 +70,7 @@ router.post('/register',
       
       // Create token
       const token = jwt.sign(
-        { userId: user._id },
+        { id: user._id },
         jwtSecret,
         jwtOptions
       );
@@ -115,7 +115,7 @@ router.post('/login',
       
       // Create token
       const token = jwt.sign(
-        { userId: user._id },
+        { id: user._id },
         jwtSecret,
         jwtOptions
       );
@@ -150,4 +150,4 @@ router.get('/verify',
   }
 );
 
-export default router; 
+export default router;

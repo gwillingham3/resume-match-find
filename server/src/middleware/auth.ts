@@ -16,10 +16,13 @@ export const auth: Middleware = (req: Request, res: Response, next: NextFunction
       throw new Error('JWT_SECRET is not configured');
     }
 
-    const decoded = jwt.verify(token, jwtSecret);
-    req.user = decoded as { userId: string };
+    const decoded = jwt.verify(token, jwtSecret) as { userId: string };
+    console.log('Decoded token:', decoded);
+    req.user = { id: decoded.userId };
+    console.log('req.user:', req.user);
     next();
   } catch (error) {
+    console.error('Invalid token:', error);
     res.status(401).json({ error: 'Invalid token' });
   }
-}; 
+};
