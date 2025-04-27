@@ -35,9 +35,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user, setUser, token, setToken, clearAuth } = useAuthStorage();
   const [isLoading, setIsLoading] = React.useState(true);
   const { toast } = useToast();
-  
+
   const isAuthenticated = !!user && !!token;
-  
+
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
@@ -106,9 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Registration successful",
         description: "Welcome to JobMatch! Your account has been created.",
+        variant: "destructive",
       });
-      
-      return true;
+      return false;
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -136,9 +136,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Google login successful",
         description: "Welcome to JobMatch!",
+        variant: "destructive",
       });
-      
-      return true;
+      return false;
     } catch (error) {
       console.error('Google login error:', error);
       toast({
@@ -165,9 +165,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "GitHub login successful",
         description: "Welcome to JobMatch!",
+        variant: "destructive",
       });
-      
-      return true;
+      return false;
     } catch (error) {
       console.error('GitHub login error:', error);
       toast({

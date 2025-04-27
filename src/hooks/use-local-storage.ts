@@ -81,10 +81,14 @@ export function useLocalStorage<T extends LocalStorageKey>(
     }
   };
 
-  // Remove value from localStorage
+   // Remove value from localStorage
   const removeValue = () => {
     try {
-      setStoredValue(defaultValues[key]);
+      if (key === 'user') {
+        setStoredValue(null);
+      } else {
+        setStoredValue((initialValue ?? defaultValues[key]) as any);
+      }
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(key);
       }
@@ -101,7 +105,7 @@ export function useLocalStorage<T extends LocalStorageKey>(
       }
       // Reset all values to default
       Object.keys(defaultValues).forEach((k) => {
-        setStoredValue(defaultValues[k as LocalStorageKey]);
+        setStoredValue(defaultValues[k as LocalStorageKey] as LocalStorageValue[T]);
       });
     } catch (error) {
       console.warn('Error clearing localStorage:', error);
@@ -197,4 +201,4 @@ export const useSidebarStorage = () => {
     setSidebarState,
     toggleSidebar
   };
-}; 
+};
