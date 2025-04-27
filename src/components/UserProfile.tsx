@@ -8,6 +8,7 @@ import JobCard from '@/components/JobCard';
 import ResumeUpload from './ResumeUpload';
 import { useJobContext } from '@/context/JobContext';
 import { useAuth } from '@/context/AuthContext';
+import { Job } from '@/types';
 
 interface UserProfileProps {
   user: {
@@ -15,8 +16,13 @@ interface UserProfileProps {
     name: string;
     email: string;
     avatar?: string;
+    resumeIds?: string[];
   };
   hasResume: boolean;
+  savedJobs: Job[];
+  appliedJobs: Job[];
+  onRemoveSaved: (jobId: string) => void;
+  onRemoveApplied: (jobId: string) => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -29,6 +35,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   
   const savedJobList = jobs.filter(job => savedJobs.includes(job.id));
   const appliedJobList = jobs.filter(job => appliedJobs.includes(job.id));
+
+  console.log("Here are the resumeIds: " + user.resumeIds);
+  console.log("Here is the name: " + user.name);
   
   return (
     <div className="space-y-6">
@@ -122,7 +131,51 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </TabsContent>
         
         <TabsContent value="resume" className="mt-6">
-          {hasResume ? (
+          {user.resumeIds && user.resumeIds.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <File className="mr-2 h-5 w-5" /> Your Resumes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {user.resumeIds && user.resumeIds.map((resumeId) => (
+                  <div key={resumeId} className="p-4 border border-gray-light rounded-lg mb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-purple/10 rounded-lg p-2">
+                          <File className="h-8 w-8 text-purple" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">resume.pdf</h4>
+                          <p className="text-sm text-gray">Uploaded on April 15, 2025</p>
+                        </div>
+                      </div>
+                      <div className="space-x-2">
+                        <Button variant="outline" size="sm">View</Button>
+                        <Button variant="outline" size="sm">Replace</Button>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h4 className="font-medium mb-2">Extracted Keywords</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {['React', 'JavaScript', 'TypeScript', 'UI/UX', 'Frontend', 'Web Development', 'Node.js', 'API Integration'].map((keyword, index) => (
+                          <span
+                            key={index}
+                            className="bg-purple-light text-purple-dark px-3 py-1 rounded-full text-sm"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Button>Upload New Resume</Button>
+              </CardContent>
+            </Card>
+          ) : (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -130,41 +183,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4 border border-gray-light rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-purple/10 rounded-lg p-2">
-                        <File className="h-8 w-8 text-purple" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">resume.pdf</h4>
-                        <p className="text-sm text-gray">Uploaded on April 15, 2025</p>
-                      </div>
-                    </div>
-                    <div className="space-x-2">
-                      <Button variant="outline" size="sm">View</Button>
-                      <Button variant="outline" size="sm">Replace</Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <h4 className="font-medium mb-2">Extracted Keywords</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {['React', 'JavaScript', 'TypeScript', 'UI/UX', 'Frontend', 'Web Development', 'Node.js', 'API Integration'].map((keyword, index) => (
-                        <span 
-                          key={index}
-                          className="bg-purple-light text-purple-dark px-3 py-1 rounded-full text-sm"
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <ResumeUpload onUploadSuccess={() => { }} />
               </CardContent>
             </Card>
-          ) : (
-            <ResumeUpload onUploadSuccess={() => {}} />
           )}
         </TabsContent>
         
