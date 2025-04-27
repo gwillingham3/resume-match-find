@@ -6,9 +6,10 @@ import { Job } from '../models/Job';
 import { calculateMatchScore, getCachedMatchScore, cacheMatchScore } from '../services/matchScore';
 import { JwtPayload } from 'jsonwebtoken';
 import { RouteHandler } from '../types/express';
+import { User } from '../models/User';
 
 const storage = multer.memoryStorage();
-const upload = multer({ 
+const upload = multer({
   storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
@@ -105,11 +106,17 @@ const uploadResume: RouteHandler = async (req, res) => {
     resume.parsedData.keywords = keywords;
     resume.status.isProcessed = true;
     await resume.save();
+
+    // Update user's resumeIds array
+    const userId = (req.user as JwtPayload & { id: string }).id;
+    await User.findByIdAndUpdate(userId, {
+      $push: { resumeIds: resume._id },
+    });
     
-    res.json({ 
+    res.json({
       message: 'Resume uploaded successfully',
       resumeId: resume._id,
-      keywords 
+      keywords
     });
   } catch (error) {
     console.error('Resume upload error:', error);
@@ -173,4 +180,4 @@ router.get('/:resumeId/match/:jobId',
   getMatchScore
 );
 
-export default router; 
+export default router;
