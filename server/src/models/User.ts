@@ -17,7 +17,11 @@ const userSchema = new mongoose.Schema({
   resumeIds: [{
     type: Schema.Types.ObjectId, ref: 'Resume' 
   }],
-  jobIds: [{ 
+  avatar: {
+    type: String,
+    required: false,
+  },
+  jobIds: [{
     type: Schema.Types.ObjectId, ref: 'Job'
   }],
   createdAt: {
@@ -26,4 +30,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-export const User = mongoose.model('User', userSchema); 
+export const User = mongoose.model('User', userSchema);

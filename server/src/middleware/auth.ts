@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { Middleware } from '../types/express';
 import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
 
-export const auth: Middleware = (req: Request, res: Response, next: NextFunction): void => {
+export const auth: Middleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -18,7 +19,23 @@ export const auth: Middleware = (req: Request, res: Response, next: NextFunction
 
     const decoded = jwt.verify(token, jwtSecret) as { userId: string };
     console.log("Decoded token:", decoded);
-    req.user = { id: decoded.userId };
+
+    // Fetch the user from the database
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    req.user = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar || "",
+      resumeIds: user.resumeIds.map(String),
+    };
+
     console.log("req.user:", req.user);
     next();
   } catch (error) {

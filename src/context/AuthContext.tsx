@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   avatar?: string;
+  resumeIds?: string[];
 }
 
 interface AuthContextType {
