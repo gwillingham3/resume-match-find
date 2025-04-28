@@ -1,16 +1,79 @@
 import express, { Request, Response } from 'express';
 import { getYCJobs } from '../services/ycJobs';
+import { cacheService } from '../services/redis';
+const { get, set } = cacheService;
+import { auth } from '../middleware/auth';
 
 const router = express.Router();
 
-router.get('/', async (req: Request, res: Response) => {
+let cachedJobs: any[] = [];
+
+async function fetchAndCacheJobs() {
   try {
     const jobs = await getYCJobs();
     if (jobs) {
-      res.json(jobs);
+      cachedJobs = jobs;
+      await set('yc_jobs', JSON.stringify(jobs));
+      console.log('Jobs cached in memory and Redis');
     } else {
-      res.status(500).json({ error: 'Failed to fetch jobs from YC API' });
+      console.error('Failed to fetch jobs from YC API');
     }
+  } catch (error) {
+    console.error('Error fetching and caching jobs:', error);
+  }
+}
+
+// Fetch and cache jobs on startup
+fetchAndCacheJobs();
+
+// Fetch and cache jobs every 15 minutes
+setInterval(fetchAndCacheJobs, 15 * 60 * 1000);
+
+router.get('/', auth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page = 1, limit = 20, search = '', sort = 'newest' } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const limitNumber = parseInt(limit as string, 10);
+
+    let jobs = cachedJobs;
+
+    if (!jobs || jobs.length === 0) {
+      console.log('No jobs in memory, fetching from YC API');
+      await fetchAndCacheJobs();
+      jobs = cachedJobs;
+      if (!jobs || jobs.length === 0) {
+        res.status(500).json({ error: 'Failed to fetch jobs from YC API' });
+        return;
+      }
+    }
+
+    // Search
+    if (search) {
+      jobs = jobs.filter(job =>
+        job.title.toLowerCase().includes((search as string).toLowerCase()) ||
+        job.company.toLowerCase().includes((search as string).toLowerCase()) ||
+        job.description.toLowerCase().includes((search as string).toLowerCase())
+      );
+    }
+
+    // Sort
+    if (sort === 'newest') {
+      jobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sort === 'oldest') {
+      jobs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+
+    // Pagination
+    const startIndex = (pageNumber - 1) * limitNumber;
+    const endIndex = pageNumber * limitNumber;
+    const paginatedJobs = jobs.slice(startIndex, endIndex);
+
+    res.json({
+      jobs: paginatedJobs,
+      page: pageNumber,
+      totalPages: Math.ceil(jobs.length / limitNumber),
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

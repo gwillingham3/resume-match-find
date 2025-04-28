@@ -14,20 +14,31 @@ interface JobListProps {
   appliedJobs: string[];
   onSaveJob: (jobId: string) => void;
   onApplyJob: (jobId: string) => void;
+  token: string | null;
 }
 
-const JobList: React.FC<JobListProps> = ({ filters }) => {
+const JobList: React.FC<JobListProps> = ({ filters, savedJobs, appliedJobs, onSaveJob, onApplyJob, token }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const { jobs, isLoading, savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob, setJobs, setIsLoading } = useJobContext();
+  const { jobs, isLoading, setJobs, setIsLoading } = useJobContext();
 
   useEffect(() => {
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:3000/api/jobs', { responseType: 'json' });
-        console.log("Here is the response data in the JobList component: ", response);
-        setJobs(response.data);
+        const response = await axios.get('http://localhost:3000/api/jobs', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: 'json'
+        });
+        console.log("Here is the response data in the JobList component: ", response.data);
+        if (response.data && Array.isArray(response.data.jobs)) {
+          setJobs(response.data.jobs);
+        } else {
+          console.error("API response is not an object with a jobs array:", response.data);
+          setJobs([]);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -36,7 +47,7 @@ const JobList: React.FC<JobListProps> = ({ filters }) => {
     };
 
     fetchJobs();
-  }, [setJobs, setIsLoading]);
+  }, [setJobs, setIsLoading, token]);
 
   console.log("Jobs in JobList:", jobs);
   
@@ -44,14 +55,14 @@ const JobList: React.FC<JobListProps> = ({ filters }) => {
     // Filter by search term
     const matchesSearch = searchTerm === '' || 
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      job.organization.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.url.toLowerCase().includes(searchTerm.toLowerCase());
       
     // Filter by selected keywords
     const matchesKeywords = selectedKeywords.length === 0 || 
       selectedKeywords.some(keyword => 
         job.title.toLowerCase().includes(keyword.toLowerCase()) ||
-        job.description.toLowerCase().includes(keyword.toLowerCase())
+        job.url.toLowerCase().includes(keyword.toLowerCase())
       );
       
     return matchesSearch && matchesKeywords;

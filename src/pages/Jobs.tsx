@@ -5,13 +5,14 @@ import { useAuth } from '@/context/AuthContext';
 import { JobFilters } from '@/types';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useJobStorage } from '@/hooks/use-local-storage';
+import { useJobStorage, useAuthStorage } from '@/hooks/use-local-storage';
 import { useJobContext } from '@/context/JobContext';
 
 const Jobs = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const { savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob } = useJobStorage();
+  const { token } = useAuthStorage();
   const { jobs, isLoading } = useJobContext();
   const [filters, setFilters] = useState<JobFilters>({
     location: '',
@@ -42,6 +43,7 @@ const Jobs = () => {
           appliedJobs={appliedJobs}
           onSaveJob={saveJob}
           onApplyJob={applyToJob}
+          token={token}
         />
       </main>
     </div>

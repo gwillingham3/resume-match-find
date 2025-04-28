@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { JobFilters } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
-import { useJobStorage } from '@/hooks/use-local-storage';
+import { useJobStorage, useAuthStorage } from '@/hooks/use-local-storage';
 import { useJobContext } from '@/context/JobContext';
 
 const Dashboard = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { token } = useAuthStorage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -183,6 +184,7 @@ const Dashboard = () => {
                       appliedJobs={appliedJobs}
                       onSaveJob={handleSaveJob}
                       onApplyJob={handleApplyToJob}
+                      token={token || ''}
                     />
                   ) : (
                     <div className="text-center py-12">
