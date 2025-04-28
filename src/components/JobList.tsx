@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import JobCard from './JobCard';
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobFilters } from '@/types';
 import { useJobContext } from '@/context/JobContext';
+import axios from 'axios';
 
 interface JobListProps {
   filters: JobFilters;
@@ -18,7 +19,26 @@ interface JobListProps {
 const JobList: React.FC<JobListProps> = ({ filters }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const { jobs, isLoading, savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob } = useJobContext();
+  const { jobs, isLoading, savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob, setJobs, setIsLoading } = useJobContext();
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get('http://localhost:3000/api/jobs', { responseType: 'json' });
+        console.log("Here is the response data in the JobList component: ", response);
+        setJobs(response.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [setJobs, setIsLoading]);
+
+  console.log("Jobs in JobList:", jobs);
   
   const filteredJobs = jobs.filter(job => {
     // Filter by search term

@@ -1,78 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import JobList from '@/components/JobList';
 import { useAuth } from '@/context/AuthContext';
-import { Job, JobFilters } from '@/types';
+import { JobFilters } from '@/types';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useJobStorage } from '@/hooks/use-local-storage';
-import { fetchJobsBasedOnKeywords } from '@/utils/resumeParser';
+import { useJobContext } from '@/context/JobContext';
 
 const Jobs = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob } = useJobStorage();
+  const { jobs, isLoading } = useJobContext();
   const [filters, setFilters] = useState<JobFilters>({
     location: '',
     type: '',
     experience: '',
     keywords: []
   });
-  
-  const {
-    savedJobs,
-    appliedJobs,
-    saveJob,
-    unsaveJob,
-    applyToJob
-  } = useJobStorage();
-  
-  useEffect(() => {
-    // Load jobs when the component mounts
-    const loadJobs = async () => {
-      setIsLoading(true);
-      try {
-        const jobsData = await fetchJobsBasedOnKeywords([]) as Job[];
-        setJobs(jobsData);
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-        toast({
-          title: "Error loading jobs",
-          description: "There was a problem loading the job listings. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadJobs();
-  }, [toast]);
-
-  const handleSaveJob = (jobId: string) => {
-    saveJob(jobId);
-    toast({
-      title: "Job saved",
-      description: "This job has been added to your saved jobs.",
-    });
-  };
-
-  const handleUnsaveJob = (jobId: string) => {
-    unsaveJob(jobId);
-    toast({
-      title: "Job unsaved",
-      description: "This job has been removed from your saved jobs.",
-    });
-  };
-
-  const handleApplyToJob = (jobId: string) => {
-    applyToJob(jobId);
-    toast({
-      title: "Application submitted",
-      description: "Your application has been submitted successfully.",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,8 +40,8 @@ const Jobs = () => {
           filters={filters}
           savedJobs={savedJobs}
           appliedJobs={appliedJobs}
-          onSaveJob={handleSaveJob}
-          onApplyJob={handleApplyToJob}
+          onSaveJob={saveJob}
+          onApplyJob={applyToJob}
         />
       </main>
     </div>

@@ -32,12 +32,3 @@ export const parseResume = async (file: File): Promise<string[]> => {
  * @param keywords Keywords extracted from the resume
  * @returns Promise resolving to job listings
  */
-export const fetchJobsBasedOnKeywords = async (keywords: string[]) => {
-  try {
-    const response = await api.post('/jobs/search', { keywords });
-    return response.data.jobs;
-  } catch (error) {
-    console.error('Error fetching jobs:', error);
-    throw error;
-  }
-};

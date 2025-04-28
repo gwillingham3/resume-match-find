@@ -8,8 +8,8 @@ import { fileURLToPath } from 'url';
 
 // Routes
 import authRoutes from './routes/auth';
-import jobRoutes from './routes/jobs';
 import resumeRoutes from './routes/resume';
+import jobRoutes from './routes/jobs';
 
 // Debug environment variables
 console.log('Environment Variables:');
@@ -43,8 +43,8 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/jobs', jobRoutes);
 app.use('/api/resume', resumeRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -71,4 +71,4 @@ const connectWithRetry = async (retries = 3, delay = 1000) => {
   }
 };
 
-connectWithRetry(); 
+connectWithRetry();

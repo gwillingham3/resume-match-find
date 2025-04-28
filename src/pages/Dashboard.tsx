@@ -5,18 +5,17 @@ import ResumeUpload from '@/components/ResumeUpload';
 import JobList from '@/components/JobList';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Job, JobFilters } from '@/types';
+import { JobFilters } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { fetchJobsBasedOnKeywords } from '@/utils/resumeParser';
 import { useToast } from "@/hooks/use-toast";
 import { useJobStorage } from '@/hooks/use-local-storage';
+import { useJobContext } from '@/context/JobContext';
 
 const Dashboard = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
@@ -27,6 +26,7 @@ const Dashboard = () => {
     experience: '',
     keywords: []
   });
+  const { jobs, setJobs } = useJobContext();
   
   const {
     saveJob,
@@ -48,8 +48,8 @@ const Dashboard = () => {
     // Fetch jobs based on extracted keywords
     setIsLoadingJobs(true);
     try {
-      const jobsData = await fetchJobsBasedOnKeywords(extractedKeywords) as Job[];
-      setJobs(jobsData);
+      // const jobsData = await fetchJobsBasedOnKeywords(extractedKeywords) as Job[];
+      setJobs([]);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
@@ -65,7 +65,7 @@ const Dashboard = () => {
     });
   };
   
-  const handleApplyJob = (job: Job) => {
+  const handleApplyJob = (job: any) => {
     if (!appliedJobs.includes(job.id)) {
       setAppliedJobs([...appliedJobs, job.id]);
     }
