@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import PaginatedJobList from '@/components/PaginatedJobList';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const JobsPage: React.FC = () => {
   const [filters, setFilters] = useState<JobFilters>({
@@ -20,6 +22,7 @@ const JobsPage: React.FC = () => {
   const { savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob } = useJobContext();
   const { token } = useAuthStorage();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 20;
@@ -30,12 +33,13 @@ const JobsPage: React.FC = () => {
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`http://localhost:3000/api/jobs?page=${page}&limit=${limit}&search=${searchTerm}`, {
+        const response = await axios.get(`http://localhost:3000/api/jobs?page=${page}&limit=${limit}&search=${searchTerm}&sort=${sort}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           }
         });
         console.log("Here is the response data in the JobsPage component: ", response.data);
+        console.log("totalPages from API: ", response.data.totalPages);
         setJobs(response.data.jobs);
         setTotalPages(response.data.totalPages);
       } catch (error) {
@@ -46,7 +50,7 @@ const JobsPage: React.FC = () => {
     };
 
     fetchJobs();
-  }, [page, searchTerm, token]);
+  }, [page, searchTerm, token, sort]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -55,6 +59,11 @@ const JobsPage: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSort(value);
+    setPage(1);
   };
 
   return (
@@ -71,6 +80,15 @@ const JobsPage: React.FC = () => {
             onChange={handleSearchChange}
           />
         </div>
+        <Select onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="oldest">Oldest</SelectItem>
+            </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -79,7 +97,12 @@ const JobsPage: React.FC = () => {
             <Skeleton key={i} className="h-32 w-full" />
           ))}
         </div>
-      ) : (
+      ) : null}
+      <PaginatedJobList
+        totalPages={totalPages}
+        page={page}
+        handlePageChange={handlePageChange}
+      >
         <JobList
           filters={filters}
           savedJobs={savedJobs}
@@ -88,27 +111,7 @@ const JobsPage: React.FC = () => {
           onApplyJob={applyToJob}
           token={token}
         />
-      )}
-
-      <div className="flex justify-center mt-8">
-        <Button
-          variant="outline"
-          disabled={page === 1}
-          onClick={() => handlePageChange(page - 1)}
-        >
-          Previous
-        </Button>
-        <span className="mx-4 self-center text-gray-500">
-          Page {page} of {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          disabled={page === totalPages}
-          onClick={() => handlePageChange(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
+      </PaginatedJobList>
     </div>
   );
 };

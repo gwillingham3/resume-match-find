@@ -32,10 +32,8 @@ setInterval(fetchAndCacheJobs, 15 * 60 * 1000);
 router.get('/', auth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 20, search = '', sort = 'newest' } = req.query;
-
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-
     let jobs = cachedJobs;
 
     if (!jobs || jobs.length === 0) {
@@ -58,10 +56,16 @@ router.get('/', auth, async (req: Request, res: Response): Promise<void> => {
     }
 
     // Sort
-    if (sort === 'newest') {
-      jobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    } else if (sort === 'oldest') {
-      jobs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    switch (sort) {
+      case 'newest':
+        jobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case 'oldest':
+        jobs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      default:
+        jobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
     }
 
     // Pagination
