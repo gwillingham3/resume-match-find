@@ -11,12 +11,6 @@ import authRoutes from './routes/auth';
 import resumeRoutes from './routes/resume';
 import jobRoutes from './routes/jobs';
 
-// Debug environment variables
-console.log('Environment Variables:');
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN);
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-
 const app = express();
 const port = process.env.PORT || 3000;
 

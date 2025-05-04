@@ -7,9 +7,6 @@ import { isValidEmail, isStrongPassword, getPasswordRequirements } from '../util
 
 const router = express.Router();
 
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN);
-
 // Validate JWT configuration
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {

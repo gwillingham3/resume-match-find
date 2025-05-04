@@ -18,7 +18,6 @@ export const auth: Middleware = async (req: Request, res: Response, next: NextFu
     }
 
     const decoded = jwt.verify(token, jwtSecret) as { userId: string };
-    console.log("Decoded token:", decoded);
 
     // Fetch the user from the database
     const user = await User.findById(decoded.userId);
@@ -36,7 +35,6 @@ export const auth: Middleware = async (req: Request, res: Response, next: NextFu
       resumeIds: user.resumeIds.map(String),
     };
 
-    console.log("req.user:", req.user);
     next();
   } catch (error) {
     console.error("Invalid token:", error);

@@ -8,7 +8,6 @@ import axios from 'axios';
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import PaginatedJobList from '@/components/PaginatedJobList';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
