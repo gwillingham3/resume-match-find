@@ -4,8 +4,32 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
 import { composeMiddleware } from '../middleware/compose';
 import { isValidEmail, isStrongPassword, getPasswordRequirements } from '../utils/validation';
+import { cacheService } from '../services/redis';
 
 const router = express.Router();
+
+const rateLimit = (windowMs: number, max: number) => {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const ip = req.ip || req.socket.remoteAddress;
+
+    if (!ip) {
+      console.warn('Could not determine IP address for rate limiting');
+      return next();
+    }
+
+    const key = `rateLimit:${ip}`;
+    const requests = await cacheService.get(key);
+    const numRequests = requests ? parseInt(requests, 10) : 0;
+
+    if (numRequests >= max) {
+      res.status(429).json({ error: 'Too many requests, please try again later.' });
+      return;
+    }
+
+    await cacheService.set(key, (numRequests + 1).toString(), windowMs / 1000);
+    next();
+  };
+};
 
 // Validate JWT configuration
 const jwtSecret = process.env.JWT_SECRET;
@@ -88,15 +112,19 @@ router.post('/register',
 );
 
 // Login - Only allow POST
-router.post('/login', 
+router.post('/login',
   composeMiddleware({
     methods: ['POST'],
-    contentType: ['application/json']
+    contentType: ['application/json'],
+    rateLimit: {
+      windowMs: 60000,
+      max: 10,
+    },
   }),
   async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       // Check if user exists
       const user = await User.findOne({ email });
       if (!user) {

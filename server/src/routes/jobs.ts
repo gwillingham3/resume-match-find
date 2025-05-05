@@ -3,6 +3,7 @@ import { getYCJobs } from '../services/ycJobs';
 import { cacheService } from '../services/redis';
 const { get, set } = cacheService;
 import { auth } from '../middleware/auth';
+import { composeMiddleware } from '../middleware/compose';
 
 const router = express.Router();
 
@@ -29,7 +30,16 @@ fetchAndCacheJobs();
 // Fetch and cache jobs every 15 minutes
 setInterval(fetchAndCacheJobs, 15 * 60 * 1000);
 
-router.get('/', auth, async (req: Request, res: Response): Promise<void> => {
+router.get('/', auth, 
+  composeMiddleware({
+    methods: ['GET'],
+    requireAuth: true,
+    rateLimit: {
+      windowMs: 60000,
+      max: 20,
+    },
+  }),
+  async (req: Request, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 20, search = '', sort = 'newest' } = req.query;
     const pageNumber = parseInt(page as string, 10);

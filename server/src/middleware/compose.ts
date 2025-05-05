@@ -1,11 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { auth } from './auth';
+import { cacheService } from '../services/redis';
 import { Middleware } from '../types/express';
 
 type MiddlewareConfig = {
   methods?: string[];
   contentType?: string[];
   requireAuth?: boolean;
+  rateLimit?: {
+    windowMs: number;
+    max: number;
+  };
 };
 
 /**
@@ -60,6 +65,30 @@ export const composeMiddleware = (config: MiddlewareConfig): Middleware => {
     middlewares.push(auth);
   }
 
+    if (config.rateLimit) {
+    const { windowMs, max } = config.rateLimit;
+    middlewares.push(async (req: Request, res: Response, next: NextFunction) => {
+      const ip = req.ip || req.socket.remoteAddress;
+
+      if (!ip) {
+        console.warn('Could not determine IP address for rate limiting');
+        return next();
+      }
+
+      const key = `rateLimit:${ip}`;
+      const requests = await cacheService.get(key);
+      const numRequests = requests ? parseInt(requests, 10) : 0;
+
+      if (numRequests >= max) {
+        res.status(429).json({ error: 'Too many requests, please try again later.' });
+        return;
+      }
+
+      await cacheService.set(key, (numRequests + 1).toString(), windowMs / 1000);
+      next();
+    });
+  }
+
   // Compose all middlewares
   return (req: Request, res: Response, next: NextFunction) => {
     let index = 0;
@@ -80,4 +109,4 @@ export const composeMiddleware = (config: MiddlewareConfig): Middleware => {
 
     runNext();
   };
-}; 
+};

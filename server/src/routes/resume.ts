@@ -163,12 +163,16 @@ const getMatchScore: RouteHandler = async (req, res) => {
 };
 
 // Register routes
-router.post('/upload', 
+router.post('/upload',
   composeMiddleware({
     methods: ['POST'],
-    requireAuth: true
+    requireAuth: true,
+    rateLimit: {
+      windowMs: 60000,
+      max: 5,
+    },
   }),
-  upload.single('resume'), 
+  upload.single('resume'),
   uploadResume
 );
 
