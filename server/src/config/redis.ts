@@ -1,7 +1,5 @@
 import Redis from 'ioredis';
-import dotenv from 'dotenv';
-
-dotenv.config();
+require('dotenv').config();
 
 let redisClient: Redis | null = null;
 

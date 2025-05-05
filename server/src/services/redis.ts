@@ -1,7 +1,5 @@
 import Redis from 'ioredis';
-import dotenv from 'dotenv';
-
-dotenv.config();
+require('dotenv').config();
 
 let redis: Redis | null = null;
 
@@ -66,4 +64,4 @@ export const cacheService = {
   }
 };
 
-export default redis; 
+export default redis;
