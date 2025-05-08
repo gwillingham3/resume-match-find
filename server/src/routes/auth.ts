@@ -193,4 +193,48 @@ router.post('/logout',
   }
 );
 
+// Update profile - Only allow PUT
+router.put('/profile',
+  composeMiddleware({
+    methods: ['PUT'],
+    requireAuth: true,
+    contentType: ['application/json']
+  }),
+  async (req, res) => {
+    try {
+      const { name, email } = req.body;
+
+      // Validate email format
+      if (!isValidEmail(email)) {
+        res.status(400).json({ error: 'Invalid email format' });
+        return;
+      }
+
+      // Find user
+      const user = await User.findById((req.user as { id: string }).id);
+      if (!user) {
+        res.status(404).json({ error: 'User not found' });
+        return;
+      }
+
+      // Update user
+      user.name = name;
+      user.email = email;
+      await user.save();
+
+      res.json({
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          resumeIds: user.resumeIds,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
 export default router;

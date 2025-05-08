@@ -8,7 +8,10 @@ import JobCard from '@/components/JobCard';
 import ResumeUpload from './ResumeUpload';
 import { useJobContext } from '@/context/JobContext';
 import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 import { Job } from '@/types';
+import { Input } from "@/components/ui/input";
+import { useAuthStorage } from '@/hooks/use-local-storage';
 
 interface UserProfileProps {
   user: {
@@ -30,14 +33,39 @@ const UserProfile: React.FC<UserProfileProps> = ({
   hasResume
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
   const { jobs, savedJobs, appliedJobs } = useJobContext();
   const { logout } = useAuth();
-  
+  const { token } = useAuthStorage();
+
   const savedJobList = jobs.filter(job => savedJobs.includes(job.id));
   const appliedJobList = jobs.filter(job => appliedJobs.includes(job.id));
 
   console.log("Here are the resumeIds: " + user.resumeIds);
   console.log("Here is the name: " + user.name);
+
+  const handleCancel = () => {
+    setIsEditMode(false);
+    setName(user.name);
+    setEmail(user.email);
+  };
+
+  const handleSave = async () => {
+    try {
+      await axios.put('http://localhost:3000/api/auth/profile', { name, email }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      setIsEditMode(false);
+    } catch (error: any) {
+      console.error('Error updating profile:', error.response?.data || error.message);
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -54,7 +82,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <p className="text-gray">{user.email}</p>
           </div>
         </div>
-        <Button className="bg-purple hover:bg-purple-dark">Edit Profile</Button>
+        <Button className="bg-purple hover:bg-purple-dark" onClick={() => setIsEditMode(true)}>
+          {isEditMode ? "Cancel" : "Edit Profile"}
+        </Button>
       </div>
       
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
@@ -97,35 +127,56 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <CardTitle>Personal Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray mb-1">Full Name</h4>
-                  <p>{user.name}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray mb-1">Email</h4>
-                  <p>{user.email}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray mb-1">User ID</h4>
-                  <p className="text-sm font-mono">{user.id}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray mb-1">Account Type</h4>
-                  <p>Basic</p>
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t border-gray-light">
-                <h4 className="font-medium mb-2">Account Actions</h4>
-                <div className="flex flex-wrap gap-4">
-                  <Button variant="outline">Change Password</Button>
-                  <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
-                    Delete Account
-                  </Button>
-                </div>
-              </div>
-              <Button onClick={logout}>Sign Out</Button>
+              {isEditMode ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray mb-1">Full Name</h4>
+                      <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray mb-1">Email</h4>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                    <div>
+                      <Button onClick={handleSave}>Save</Button>
+                      <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray mb-1">Full Name</h4>
+                      <p>{user.name}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray mb-1">Email</h4>
+                      <p>{user.email}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray mb-1">User ID</h4>
+                      <p className="text-sm font-mono">{user.id}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray mb-1">Account Type</h4>
+                      <p>Basic</p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-light">
+                    <h4 className="font-medium mb-2">Account Actions</h4>
+                    <div className="flex flex-wrap gap-4">
+                      <Button variant="outline">Change Password</Button>
+                      <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10">
+                        Delete Account
+                      </Button>
+                    </div>
+                  </div>
+                  <Button onClick={logout}>Sign Out</Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
