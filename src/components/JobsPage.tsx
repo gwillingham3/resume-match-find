@@ -2,6 +2,7 @@ import React from 'react';
 import { useJobContext } from '@/context/JobContext';
 import JobList from '@/components/JobList';
 import { JobFilters } from '@/types';
+import { useAuthStorage } from '@/hooks/use-local-storage';
 
 interface JobsPageProps {
   filters: JobFilters;
@@ -9,6 +10,7 @@ interface JobsPageProps {
 
 const JobsPage: React.FC<JobsPageProps> = ({ filters }) => {
   const { savedJobs, appliedJobs, saveJob, applyToJob } = useJobContext();
+  const { token } = useAuthStorage();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -18,10 +20,11 @@ const JobsPage: React.FC<JobsPageProps> = ({ filters }) => {
         savedJobs={savedJobs} 
         appliedJobs={appliedJobs} 
         onSaveJob={saveJob} 
-        onApplyJob={applyToJob} 
+        onApplyJob={applyToJob}
+        token={token}
       />
     </div>
   );
 };
 
-export default JobsPage; 
+export default JobsPage;

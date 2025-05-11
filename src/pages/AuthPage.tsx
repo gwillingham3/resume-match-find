@@ -22,12 +22,7 @@ const AuthPage = () => {
       
       <main className="flex-grow py-12 px-4 bg-gray-light/30">
         <div className="max-w-md mx-auto">
-          <Auth 
-            onLogin={login}
-            onRegister={register}
-            onGoogleLogin={googleLogin}
-            onGithubLogin={githubLogin}
-          />
+          <Auth />
         </div>
       </main>
       

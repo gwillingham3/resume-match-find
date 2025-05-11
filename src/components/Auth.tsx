@@ -8,14 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 
-interface AuthProps {
-  onLogin?: () => void;
-  onRegister?: () => void;
-  onGoogleLogin?: () => void;
-  onGithubLogin?: () => void;
-}
+interface AuthProps {}
 
-const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithubLogin }) => {
+const Auth: React.FC<AuthProps> = () => {
   const [activeTab, setActiveTab] = useState('login');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -26,12 +21,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { login, register } = useAuth();
-  
+  const { login, register, googleLogin, githubLogin } = useAuth();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Validate form
     if (!loginEmail || !loginPassword) {
       toast({
@@ -42,7 +37,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const success = await login(loginEmail, loginPassword);
       if (success) {
@@ -54,11 +49,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       setIsLoading(false);
     }
   };
-  
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Validate form
     if (!registerName || !registerEmail || !registerPassword || !registerConfirmPassword) {
       toast({
@@ -69,7 +64,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       setIsLoading(false);
       return;
     }
-    
+
     if (registerPassword !== registerConfirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -79,7 +74,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const success = await register(registerEmail, registerPassword, registerName);
       if (success) {
@@ -91,7 +86,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
       setIsLoading(false);
     }
   };
-  
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
@@ -104,7 +99,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
@@ -136,15 +131,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
-                className="w-full btn-primary" 
+              <Button
+                type="submit"
+                className="w-full btn-primary"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Sign In"}
               </Button>
             </form>
-            
+
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-light"></div>
@@ -153,19 +148,19 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
                 <span className="bg-white px-3 text-gray">or continue with</span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={onGoogleLogin}
+              <Button
+                variant="outline"
+                onClick={() => googleLogin()}
                 disabled={isLoading}
                 className="w-full"
               >
                 Google
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={onGithubLogin}
+              <Button
+                variant="outline"
+                onClick={() => githubLogin()}
                 disabled={isLoading}
                 className="w-full"
               >
@@ -173,7 +168,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
               </Button>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="register">
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
@@ -223,15 +218,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
-                className="w-full btn-primary" 
+              <Button
+                type="submit"
+                className="w-full btn-primary"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
-            
+
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-light"></div>
@@ -240,19 +235,19 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onRegister, onGoogleLogin, onGithu
                 <span className="bg-white px-3 text-gray">or sign up with</span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={onGoogleLogin}
+              <Button
+                variant="outline"
+                onClick={() => googleLogin()}
                 disabled={isLoading}
                 className="w-full"
               >
                 Google
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={onGithubLogin}
+              <Button
+                variant="outline"
+                onClick={() => githubLogin()}
                 disabled={isLoading}
                 className="w-full"
               >
