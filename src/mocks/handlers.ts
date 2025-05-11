@@ -1,7 +1,7 @@
 import { http } from 'msw';
 
 export const handlers = [
-  http.post('/auth/login', async ({ request }) => {
+  http.post('http://localhost:3000/api/auth/login', async ({ request }) => {
     const { email, password } = await request.json() as any;
 
     if (email === 'test@example.com' && password === 'password') {
