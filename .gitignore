@@ -14,7 +14,6 @@ dist-ssr
 .env
 server/.env
 test/.env
-server/test/setup.ts
 
 # Editor directories and files
 .vscode/*

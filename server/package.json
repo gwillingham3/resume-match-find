@@ -26,6 +26,7 @@
     "@types/ioredis": "^5.0.0",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.11.30",
+    "ioredis-mock": "^8.9.0",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
