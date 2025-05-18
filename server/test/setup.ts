@@ -7,3 +7,5 @@ vi.mock('ioredis', async () => {
     default: RedisMock.default || RedisMock,
   };
 });
+
+process.env.JWT_SECRET = 'test-secret';
