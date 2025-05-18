@@ -32,7 +32,7 @@ const rateLimit = (windowMs: number, max: number) => {
 };
 
 // Validate JWT configuration
-const jwtSecret = process.env.JWT_SECRET;
+const jwtSecret = process.env.NODE_ENV === 'test' ? 'test-secret' : process.env.JWT_SECRET;
 if (!jwtSecret) {
   console.error('JWT_SECRET is missing from environment variables');
   throw new Error('JWT_SECRET environment variable is required');
