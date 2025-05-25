@@ -32,7 +32,8 @@ const JobsPage: React.FC = () => {
     const fetchJobs = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`http://localhost:3000/api/jobs?page=${page}&limit=${limit}&search=${searchTerm}&sort=${sort}`, {
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const response = await axios.get(`${apiUrl}/api/jobs?page=${page}&limit=${limit}&search=${searchTerm}&sort=${sort}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           }

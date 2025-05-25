@@ -54,7 +54,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const handleSave = async () => {
     try {
-      await axios.put('http://localhost:3000/api/auth/profile', { name, email }, {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      await axios.put(`${apiUrl}/api/auth/profile`, { name, email }, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
