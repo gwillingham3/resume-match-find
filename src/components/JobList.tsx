@@ -27,7 +27,7 @@ const JobList: React.FC<JobListProps> = ({ filters, savedJobs, appliedJobs, onSa
       setIsLoading(true);
       try {
         const apiUrl = import.meta.env.VITE_API_URL;
-        const response = await axios.get(`${apiUrl}/api/jobs`, {
+        const response = await axios.get(`${apiUrl}/jobs`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
