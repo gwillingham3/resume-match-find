@@ -8,8 +8,15 @@ import { composeMiddleware } from '../middleware/compose';
 const router = express.Router();
 
 let cachedJobs: any[] = [];
+let isFetchingJobs = false;
 
 async function fetchAndCacheJobs() {
+  if (isFetchingJobs) {
+    console.log('Already fetching jobs, skipping this interval');
+    return;
+  }
+
+  isFetchingJobs = true;
   try {
     const jobs = await getYCJobs();
     if (jobs) {
@@ -21,6 +28,8 @@ async function fetchAndCacheJobs() {
     }
   } catch (error) {
     console.error('Error fetching and caching jobs:', error);
+  } finally {
+    isFetchingJobs = false;
   }
 }
 
@@ -28,7 +37,11 @@ async function fetchAndCacheJobs() {
 fetchAndCacheJobs();
 
 // Fetch and cache jobs every 15 minutes
-setInterval(fetchAndCacheJobs, 15 * 60 * 1000);
+setInterval(() => {
+  fetchAndCacheJobs().catch(error => {
+    console.error('Error in setInterval:', error);
+  });
+}, 15 * 60 * 1000);
 
 router.get('/', auth, 
   composeMiddleware({
