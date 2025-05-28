@@ -33,9 +33,6 @@ async function fetchAndCacheJobs() {
   }
 }
 
-// Fetch and cache jobs on startup
-fetchAndCacheJobs();
-
 // Fetch and cache jobs every 15 minutes
 setInterval(() => {
   fetchAndCacheJobs().catch(error => {
