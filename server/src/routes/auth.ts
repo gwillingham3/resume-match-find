@@ -8,6 +8,9 @@ import { cacheService } from '../services/redis';
 
 const router = express.Router();
 
+const MAX_IP_ADDRESSES = 1000; // Maximum number of IP addresses to track
+const activeIpsKey = 'activeIps';
+
 const rateLimit = (windowMs: number, max: number) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const ip = req.ip || req.socket.remoteAddress;
@@ -25,6 +28,19 @@ const rateLimit = (windowMs: number, max: number) => {
       res.status(429).json({ error: 'Too many requests, please try again later.' });
       return;
     }
+
+    // Check if the number of active IP addresses exceeds the limit
+    const numActiveIps = await cacheService.scard(activeIpsKey);
+    if (numActiveIps >= MAX_IP_ADDRESSES) {
+      // Evict the oldest IP address from the cache
+      const evictedIp = await cacheService.spop(activeIpsKey);
+      if (evictedIp) {
+        await cacheService.del(`rateLimit:${evictedIp}`);
+      }
+    }
+
+    // Add the IP address to the set of active IP addresses
+    await cacheService.sadd(activeIpsKey, ip);
 
     await cacheService.set(key, (numRequests + 1).toString(), windowMs / 1000);
     next();

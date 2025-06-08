@@ -6,7 +6,7 @@ import multer from 'multer';
 interface Resume {
   userId: mongoose.Types.ObjectId;
   file: {
-    data: Buffer;
+    data: string; // Changed type to string
     filename: string;
     contentType: string;
     size: number;
@@ -86,7 +86,7 @@ const ResumeSchema = new mongoose.Schema<Resume>({
   },
   file: {
     data: {
-      type: Buffer,
+      type: String, // Changed type to string
       required: true,
     },
     filename: {
@@ -264,4 +264,4 @@ export default ResumeModel;
 export type { Resume };
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage }); 
+const upload = multer({ storage });

@@ -42,6 +42,44 @@ export const cacheService = {
       console.warn('Error checking cache existence:', err);
       return false;
     }
+  },
+
+  async sadd(key: string, value: string): Promise<void> {
+    if (!redisClient) return;
+    try {
+      await redisClient.sadd(key, value);
+    } catch (err) {
+      console.warn('Error adding to set:', err);
+    }
+  },
+
+  async srem(key: string, value: string): Promise<void> {
+    if (!redisClient) return;
+    try {
+      await redisClient.srem(key, value);
+    } catch (err) {
+      console.warn('Error removing from set:', err);
+    }
+  },
+
+  async scard(key: string): Promise<number> {
+    if (!redisClient) return 0;
+    try {
+      return await redisClient.scard(key);
+    } catch (err) {
+      console.warn('Error getting set cardinality:', err);
+      return 0;
+    }
+  },
+
+  async spop(key: string): Promise<string | null> {
+    if (!redisClient) return null;
+    try {
+      return await redisClient.spop(key);
+    } catch (err) {
+      console.warn('Error popping from set:', err);
+      return null;
+    }
   }
 };
 

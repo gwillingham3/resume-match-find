@@ -66,3 +66,11 @@ const connectWithRetry = async (retries = 3, delay = 1000) => {
 };
 
 connectWithRetry();
+setInterval(() => {
+    const used = process.memoryUsage();
+    console.log('Memory usage:', {
+        rss: Math.round(used.rss / 1024 / 1024) + 'MB',
+        heapTotal: Math.round(used.heapTotal / 1024 / 1024) + 'MB',
+        heapUsed: Math.round(used.heapUsed / 1024 / 1024) + 'MB'
+    });
+}, 30000);

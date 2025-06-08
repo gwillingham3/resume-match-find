@@ -7,7 +7,6 @@ import { composeMiddleware } from '../middleware/compose';
 
 const router = express.Router();
 
-let cachedJobs: any[] = [];
 let isFetchingJobs = false;
 
 async function fetchAndCacheJobs() {
@@ -20,9 +19,8 @@ async function fetchAndCacheJobs() {
   try {
     const jobs = await getYCJobs();
     if (jobs) {
-      cachedJobs = jobs;
       await set('yc_jobs', JSON.stringify(jobs));
-      console.log('Jobs cached in memory and Redis');
+      console.log('Jobs cached in Redis');
     } else {
       console.error('Failed to fetch jobs from YC API');
     }
@@ -54,12 +52,16 @@ router.get('/', auth,
     const { page = 1, limit = 20, search = '', sort = 'newest' } = req.query;
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
-    let jobs = cachedJobs;
+
+    // Fetch jobs from Redis
+    const cachedJobsString = await get('yc_jobs');
+    let jobs: any[] = cachedJobsString ? JSON.parse(cachedJobsString) : [];
 
     if (!jobs || jobs.length === 0) {
-      console.log('No jobs in memory, fetching from YC API');
+      console.log('No jobs in Redis, fetching from YC API');
       await fetchAndCacheJobs();
-      jobs = cachedJobs;
+      const cachedJobsString = await get('yc_jobs');
+      jobs = cachedJobsString ? JSON.parse(cachedJobsString) : [];
       if (!jobs || jobs.length === 0) {
         res.status(500).json({ error: 'Failed to fetch jobs from YC API' });
         return;
