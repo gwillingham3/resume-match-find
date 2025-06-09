@@ -26,6 +26,7 @@ export const composeMiddleware = (config: MiddlewareConfig): Middleware => {
     const allowedMethods = config.methods;
     middlewares.push((req: Request, res: Response, next: NextFunction) => {
       if (!allowedMethods.includes(req.method)) {
+        console.log('Method Not Allowed:', req.method, allowedMethods);
         res.status(405).json({ 
           error: 'Method Not Allowed',
           message: `Only ${allowedMethods.join(', ')} methods are supported`
@@ -48,6 +49,7 @@ export const composeMiddleware = (config: MiddlewareConfig): Middleware => {
       }
       
       if (!allowedContentTypes.includes(contentType)) {
+        console.log('Content Type Not Allowed:', contentType, allowedContentTypes);
         res.status(415).json({ 
           error: 'Unsupported Media Type',
           message: `Content-Type must be one of: ${allowedContentTypes.join(', ')}`
@@ -80,6 +82,7 @@ export const composeMiddleware = (config: MiddlewareConfig): Middleware => {
       const numRequests = requests ? parseInt(requests, 10) : 0;
 
       if (numRequests >= max) {
+        console.log('Rate Limit Exceeded:', ip, numRequests, max);
         res.status(429).json({ error: 'Too many requests, please try again later.' });
         return;
       }

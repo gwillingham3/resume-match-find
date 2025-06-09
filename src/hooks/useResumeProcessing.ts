@@ -28,25 +28,47 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
       setProgress(0);
       setError(null);
 
-      const formData = new FormData();
-      formData.append('resume', file);
-      if (user && user.id) {
-        formData.append('userId', user.id);
-      }
+      const filename = file.name;
+      const contentType = file.type;
 
-      const response = await api.post('/resume/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1)
-          );
-          setProgress(percentCompleted);
+      const presignedResponse = await api.get('/resume/presigned', {
+        params: {
+          filename,
+          contentType,
         },
       });
 
-      setKeywords(response.data.keywords);
+      const { uploadURL, key } = presignedResponse.data;
+
+      // Upload the file to S3 using the presigned URL
+      const response = await fetch(uploadURL, {
+        method: 'PUT',
+        headers: {
+        },
+        body: file,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload resume: ${response.status} ${response.statusText}`);
+      }
+
+      const metadata = JSON.stringify({
+        key,
+        userId: user?.id,
+        contentType: contentType,
+      });
+
+      // Send a request to the server to save the resume metadata
+      await api.post('/resume/metadata', {
+        headers: {
+          contentType: contentType,
+        },
+        data: {
+          key: key,
+          userId: user?.id,
+        },
+      });
+
       setState('success');
       
       toast({
@@ -82,4 +104,4 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
     uploadResume,
     reset,
   };
-}; 
+};
