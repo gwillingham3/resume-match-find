@@ -2,14 +2,9 @@ require('dotenv').config();
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import morgan from 'morgan';
+//import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-// Routes
-import authRoutes from './routes/auth';
-import resumeRoutes from './routes/resume';
-import jobRoutes from './routes/jobs';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -19,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 // Basic HTTP request logging
-app.use(morgan('dev'));
+//app.use(morgan('dev'));
 
 // Global method restriction middleware
 app.use((req, res, next) => {
@@ -35,10 +30,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/resume', resumeRoutes);
-app.use('/api/jobs', jobRoutes);
+const loadRoutesInStages = async () => {
+  // Stage 1: Critical routes first
+  const authRoutes = await import('./routes/auth');
+  app.use('/api/auth', authRoutes.default);
+  
+  // Allow GC between stages
+  if (global.gc) global.gc();
+  
+  // Stage 2: Less critical routes
+  setTimeout(async () => {
+    const resumeRoutes = await import('./routes/resume');
+    const jobRoutes = await import('./routes/jobs');
+    app.use('/api/resume', resumeRoutes.default);
+    app.use('/api/jobs', jobRoutes.default);
+  }, 100);
+};
+
+loadRoutesInStages();
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -48,8 +57,11 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 // Connect to MongoDB with retry logic
 const connectWithRetry = async (retries = 3, delay = 1000) => {
+  let timeoutId: NodeJS.Timeout;
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jobmatch');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jobmatch', {
+      maxPoolSize: 5, // Set the maximum pool size to 5
+    });
     console.log('Connected to MongoDB');
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
@@ -57,7 +69,7 @@ const connectWithRetry = async (retries = 3, delay = 1000) => {
   } catch (error) {
     if (retries > 0) {
       console.error(`Failed to connect to MongoDB, retrying in ${delay}ms... (${retries} attempts left)`);
-      setTimeout(() => connectWithRetry(retries - 1, delay * 2), delay);
+      timeoutId = setTimeout(() => connectWithRetry(retries - 1, delay * 2), delay);
     } else {
       console.error('Failed to connect to MongoDB after all retry attempts:', error);
       process.exit(1);
@@ -74,3 +86,17 @@ setInterval(() => {
         heapUsed: Math.round(used.heapUsed / 1024 / 1024) + 'MB'
     });
 }, 30000);
+
+process.on('exit', () => {
+  mongoose.connection.removeAllListeners();
+  mongoose.connection.close();
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing MongoDB connection and exiting...');
+  mongoose.connection.removeAllListeners();
+  mongoose.connection.close().then(() => {
+    console.log('MongoDB connection closed');
+    process.exit(0);
+  });
+});
