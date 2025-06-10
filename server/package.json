@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
-    "start": "nodemon src/index.ts",
+    "start": "npx tsc && node dist/index.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc"
   },
