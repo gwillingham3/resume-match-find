@@ -15,7 +15,7 @@ try {
   Object.keys(process.env)
     .filter(key => key.startsWith('REDIS'))
     .forEach(key => {
-      console.log(`${key}:`, process.env[key] ? '[SET]' : '[NOT SET]');
+      console.log(`${key}:`, process.env[key] ? process.env[key] : '[NOT SET]');
     });
 
   redisClient.on('error', (err: Error) => {
