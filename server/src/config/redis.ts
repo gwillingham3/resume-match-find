@@ -3,6 +3,12 @@ require('dotenv').config();
 
 let redisClient: Redis | null = null;
 
+console.log('=== REDIS CONNECTION DEBUG ===');
+console.log('REDIS_HOST:', process.env.REDIS_HOST);
+console.log('REDIS_PORT:', process.env.REDIS_PORT);
+console.log('REDIS_USERNAME:', process.env.REDIS_USERNAME);
+console.log('REDIS_PASSWORD:', process.env.REDIS_PASSWORD ? '[HIDDEN]' : 'NOT SET');
+
 try {
   redisClient = new Redis({
     host: process.env.REDIS_HOST || 'NOT SET',
