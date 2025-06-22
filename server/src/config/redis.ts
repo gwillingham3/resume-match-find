@@ -5,11 +5,18 @@ let redisClient: Redis | null = null;
 
 try {
   redisClient = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
+    host: process.env.REDIS_HOST || 'NOT SET',
+    port: parseInt(process.env.REDIS_PORT || 'NOT SET'),
     username: process.env.REDIS_USERNAME || undefined,
     password: process.env.REDIS_PASSWORD || undefined,
   });
+
+  console.log('All env vars starting with REDIS:');
+  Object.keys(process.env)
+    .filter(key => key.startsWith('REDIS'))
+    .forEach(key => {
+      console.log(`${key}:`, process.env[key] ? '[SET]' : '[NOT SET]');
+    });
 
   redisClient.on('error', (err: Error) => {
     console.warn('Redis Client Error:', err);
