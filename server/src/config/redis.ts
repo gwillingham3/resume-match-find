@@ -10,12 +10,17 @@ console.log('REDIS_USERNAME:', process.env.REDIS_USERNAME);
 console.log('REDIS_PASSWORD:', process.env.REDIS_PASSWORD ? '[HIDDEN]' : 'NOT SET');
 
 try {
-  redisClient = new Redis({
+  const redisUrl = `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
+  console.log('Connecting with URL format (password hidden)');
+
+  /*redisClient = new Redis({
     host: process.env.REDIS_HOST || 'NOT SET',
     port: parseInt(process.env.REDIS_PORT || 'NOT SET'),
     username: process.env.REDIS_USERNAME || undefined,
     password: process.env.REDIS_PASSWORD || undefined,
-  });
+  });*/
+  
+  redisClient = new Redis(redisUrl);
 
   console.log('All env vars starting with REDIS:');
   Object.keys(process.env)
