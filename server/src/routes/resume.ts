@@ -9,6 +9,7 @@ import { RouteHandler } from '../types/express';
 import { User } from '../models/User';
 import redisClient from '../config/redis'; // Import redisClient
 import AWS from 'aws-sdk';
+import { parseResume } from '../utils/resumeParser'; // Import resume parser
 
 // Configure AWS SDK
 
@@ -57,123 +58,6 @@ const generatePresignedUrl: RouteHandler = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-
-/*
-// Upload and parse resume - Only allow POST
-const uploadResume: RouteHandler = async (req, res) => {
-  console.log('Upload resume request received:', {
-    method: req.method,
-    path: req.path,
-    headers: req.headers,
-    file: req.file ? {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size
-    } : null,
-    user: req.user
-  });
-
-  try {
-    if (!req.file) {
-      console.log('No file uploaded');
-      res.status(400).json({ error: 'No file uploaded' });
-      return;
-    }
-
-    if (!req.user) {
-      console.log('No user found in request');
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    // Upload file to S3
-    const params = {
-      Bucket: bucketName,
-      Key: `resumes/${Date.now()}-${req.file.originalname}`,
-      Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-    };
-
-    const s3UploadResult = await s3.upload(params).promise();
-
-    // Save resume
-    const resume = new Resume({
-      userId: (req.user as JwtPayload & { id: string }).id,
-      file: {
-        data: s3UploadResult.Key, // Store S3 object key
-        filename: req.file.originalname,
-        contentType: req.file.mimetype,
-        size: req.file.size
-      },
-      parsedData: {
-        keywords: [], // Will be populated after parsing
-        skills: [],  // Will be populated after parsing
-        education: [],
-        experience: [],
-        personalInfo: {}
-      },
-      status: {
-        isProcessed: false,
-        lastProcessed: new Date()
-      },
-      metadata: {
-        uploadedAt: new Date(),
-        lastUpdated: new Date(),
-        version: 1
-      },
-      settings: {
-        isPublic: false,
-        allowKeywordExtraction: true,
-        preferredJobTypes: []
-      },
-      jobPreferences: {
-        desiredRole: [],
-        desiredIndustries: [],
-        workType: [],
-        experienceLevel: 'entry'
-      },
-      applications: []
-    });
-    
-    await resume.save();
-    
-    // Queue resume processing task
-    if (redisClient) {
-      const resumeId = resume._id.toString();
-      await redisClient.rpush('resume_processing_queue', resumeId);
-      console.log(`Resume processing task queued for resumeId: ${resumeId}`);
-    } else {
-      console.warn('Redis client not available, processing resume synchronously');
-      // Extract keywords (implement your parsing logic here)
-      const keywords = ['React', 'JavaScript', 'Node.js']; // Example keywords
-      
-      // Update the resume with extracted keywords
-      resume.parsedData.keywords = keywords;
-      resume.status.isProcessed = true;
-      await resume.save();
-    }
-
-    // Update user's resumeIds array
-    const userId = (req.user as JwtPayload & { id: string }).id;
-    await User.findByIdAndUpdate(userId, {
-      $push: { resumeIds: resume._id },
-    });
-    
-    res.json({
-      message: 'Resume uploaded successfully',
-      resumeId: resume._id,
-      keywords: [] // Return empty keywords since processing is asynchronous
-    });
-  } catch (error) {
-    console.error('Resume upload error:', error);
-    if (error instanceof Error) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'Server error' });
-    }
-  }
-};
-*/
 
 // Get match score - Only allow GET
 const getMatchScore: RouteHandler = async (req, res) => {
@@ -244,21 +128,6 @@ router.get('/presigned',
   generatePresignedUrl
 );
 
-/*
-router.post('/upload',
-  composeMiddleware({
-    methods: ['POST'],
-    requireAuth: true,
-    rateLimit: {
-      windowMs: 60000,
-      max: 5,
-    },
-  }),
-  upload.single('resume'),
-  uploadResume
-);
-*/
-
 // Save resume metadata - Only allow POST
 const saveResumeMetadata: RouteHandler = async (req, res) => {
   try {
@@ -313,6 +182,31 @@ const saveResumeMetadata: RouteHandler = async (req, res) => {
     });
     
     await resume.save();
+
+    let keywords: string[] = [];
+    try {
+      const s3GetObjectResult = await s3
+        .getObject({
+          Bucket: bucketName,
+          Key: key,
+        })
+        .promise();
+
+      const fileBuffer = s3GetObjectResult.Body as Buffer;
+
+      keywords = await parseResume(fileBuffer, contentType);
+      console.log("here are the keywords from the parsed resume: " + keywords);
+
+      // Update the resume with extracted keywords
+      resume.parsedData.keywords = keywords;
+      resume.status.isProcessed = true;
+      await resume.save();
+
+    } catch (error: any) {
+      console.error('Error parsing resume:', error);
+      resume.status.isProcessed = false;
+      await resume.save();
+    }
     
     // Queue resume processing task
     if (redisClient) {
@@ -322,12 +216,8 @@ const saveResumeMetadata: RouteHandler = async (req, res) => {
     } else {
       console.warn('Redis client not available, processing resume synchronously');
       // Extract keywords (implement your parsing logic here)
-      const keywords = ['React', 'JavaScript', 'Node.js']; // Example keywords
-      
-      // Update the resume with extracted keywords
-      resume.parsedData.keywords = keywords;
+      resume.parsedData.keywords = ['fallback keyword'];
       resume.status.isProcessed = true;
-      await resume.save();
     }
 
     // Update user's resumeIds array
@@ -338,7 +228,7 @@ const saveResumeMetadata: RouteHandler = async (req, res) => {
     res.json({
       message: 'Resume uploaded successfully',
       resumeId: resume._id,
-      keywords: [] // Return empty keywords since processing is asynchronous
+      keywords: keywords
     });
   } catch (error) {
     console.error('Resume metadata error:', error);
@@ -361,9 +251,8 @@ router.post('/metadata',
   }),
   saveResumeMetadata
 );
-console.log('Reached /metadata route');
 
-router.get('/:resumeId/match/:jobId', 
+router.get('/:resumeId/match/:jobId',
   composeMiddleware({
     methods: ['GET'],
     requireAuth: true
