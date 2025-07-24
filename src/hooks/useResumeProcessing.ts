@@ -56,6 +56,7 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
         key,
         userId: user?.id,
         contentType: contentType,
+        contentLength: file.size,
       });
 
       // Send a request to the server to save the resume metadata
@@ -66,6 +67,8 @@ export const useResumeProcessing = (): UseResumeProcessingReturn => {
         data: {
           key: key,
           userId: user?.id,
+          contentType: contentType,
+          contentLength: file.size,
         },
       });
 

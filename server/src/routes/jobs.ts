@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { getYCJobs } from '../services/ycJobs';
+import { getJSearchJobs } from '../services/jSearch';
 import { cacheService } from '../services/redis';
 const { get, set } = cacheService;
 import { auth } from '../middleware/auth';
@@ -17,9 +18,10 @@ async function fetchAndCacheJobs() {
 
   isFetchingJobs = true;
   try {
-    const jobs = await getYCJobs();
+    //const jobs = await getYCJobs();
+    const jobs = await getJSearchJobs();
     if (jobs) {
-      await set('yc_jobs', JSON.stringify(jobs));
+      await set('jsearch_jobs', JSON.stringify(jobs));
       console.log('Jobs cached in Redis');
     } else {
       console.error('Failed to fetch jobs from YC API');
@@ -54,13 +56,13 @@ router.get('/', auth,
     const limitNumber = parseInt(limit as string, 10);
 
     // Fetch jobs from Redis
-    const cachedJobsString = await get('yc_jobs');
+    const cachedJobsString = await get('jsearch_jobs');
     let jobs: any[] = cachedJobsString ? JSON.parse(cachedJobsString) : [];
 
     if (!jobs || jobs.length === 0) {
       console.log('No jobs in Redis, fetching from YC API');
       await fetchAndCacheJobs();
-      const cachedJobsString = await get('yc_jobs');
+      const cachedJobsString = await get('jsearch_jobs');
       jobs = cachedJobsString ? JSON.parse(cachedJobsString) : [];
       if (!jobs || jobs.length === 0) {
         res.status(500).json({ error: 'Failed to fetch jobs from YC API' });

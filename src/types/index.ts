@@ -1,9 +1,11 @@
 export interface Job {
   id: string;
-  title: string;
-  organization: string;
-  locations_derived: string[];
+  job_title: string;
+  employer_name: string;
+  job_description: string;
+  job_location: string;
   url: string;
+  job_salary: number;
   salary_raw?: {
     "@type": string;
     currency: string;
@@ -14,7 +16,7 @@ export interface Job {
       unitText: string;
     };
   };
-  employment_type?: string[];
+  job_employment_type: string;
   date_posted?: string;
 }
 
