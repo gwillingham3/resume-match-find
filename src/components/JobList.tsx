@@ -35,7 +35,7 @@ const JobList: React.FC<JobListProps> = ({ filters, savedJobs, appliedJobs, onSa
         });
         console.log("Here is the response data in the JobList component: ", response.data);
         if (response.data && Array.isArray(response.data.jobs)) {
-          setJobs(response.data.jobs);
+          setJobs(response.data.jobs[0].data);
         } else {
           console.error("API response is not an object with a jobs array:", response.data);
           setJobs([]);
@@ -55,14 +55,14 @@ const JobList: React.FC<JobListProps> = ({ filters, savedJobs, appliedJobs, onSa
   const filteredJobs = jobs.filter(job => {
     // Filter by search term
     const matchesSearch = searchTerm === '' || 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.organization.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.job_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.employer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.url.toLowerCase().includes(searchTerm.toLowerCase());
       
     // Filter by selected keywords
     const matchesKeywords = selectedKeywords.length === 0 || 
       selectedKeywords.some(keyword => 
-        job.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        job.job_title.toLowerCase().includes(keyword.toLowerCase()) ||
         job.url.toLowerCase().includes(keyword.toLowerCase())
       );
       

@@ -20,7 +20,7 @@ const JobsPage: React.FC = () => {
   });
   const { savedJobs, appliedJobs, saveJob, unsaveJob, applyToJob } = useJobContext();
   const { token } = useAuthStorage();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('*');
   const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -39,7 +39,7 @@ const JobsPage: React.FC = () => {
           }
         });
         console.log("Here is the response data in the JobsPage component: ", response.data);
-        console.log("totalPages from API: ", response.data.totalPages);
+        console.log("num_pages from API: ", response.data.num_pages);
         setJobs(response.data.jobs);
         setTotalPages(response.data.totalPages);
       } catch (error) {
